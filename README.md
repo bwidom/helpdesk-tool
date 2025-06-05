@@ -1,3 +1,3 @@
 # helpdesk-tool
 
-## A tool for simplifying managing users and computers in a domain.
+## A tool for managing users and computers in a domain.
