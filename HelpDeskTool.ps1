@@ -15,7 +15,7 @@ $lEmployeeID = $MainWindow.FindName("lEmployeeID")
 $lSAMAccountName = $MainWindow.FindName("lSAMAccountName")
 
 try{
-    Get-ADComputer | Select-Object -First 1
+    Get-ADComputer -Filter * | Select-Object -First 1
     $ADEnvironment = "True"
 }catch{
     Write-Host "Active Directory not installed, using test data"
