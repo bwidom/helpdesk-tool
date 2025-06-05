@@ -59,6 +59,7 @@ function Spawn-PasswordWindow{
     if($lSAMAccountName.Content){
         $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/ChangePasswordWindow.xaml"
         [xml]$XAML = $WebRequest.Content
+        $XAML.Window.RemoveAttribute('x:Class')
         $XAML.Window.RemoveAttribute('mc:Ignorable')
         $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
         $ChangePasswordWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
