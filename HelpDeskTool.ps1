@@ -1,6 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
-[xml]$XAML = Get-Content "C:\Users\DCAdmin\Documents\HelpDesk Tool\HelpDeskToolWindow.xaml.txt"
+$WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
+[xml]$XAML = $WebRequest.Content
 $XAML.Window.RemoveAttribute('x:Class')
 $XAML.Window.RemoveAttribute('mc:Ignorable')
 $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
@@ -56,8 +57,8 @@ function Unlock-User{
 
 function Spawn-PasswordWindow{
     if($lSAMAccountName.Content){
-        [xml]$XAML = Get-Content "C:\Users\DCAdmin\Documents\HelpDesk Tool\ChangePasswordWindow.xaml.txt"
-        $XAML.Window.RemoveAttribute('x:Class')
+        $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/ChangePasswordWindow.xaml"
+        [xml]$XAML = $WebRequest.Content
         $XAML.Window.RemoveAttribute('mc:Ignorable')
         $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
         $ChangePasswordWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
