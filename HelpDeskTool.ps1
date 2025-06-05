@@ -14,6 +14,15 @@ $tbSearchUser = $MainWindow.FindName("tbSearchUser")
 $lEmployeeID = $MainWindow.FindName("lEmployeeID")
 $lSAMAccountName = $MainWindow.FindName("lSAMAccountName")
 
+try{
+    Get-ADComputer | Select-Object -First 1
+    $ADEnvironment = "True"
+}catch{
+    Write-Host "Active Directory not installed, using test data"
+    $ADEnvironment = "False"
+}
+
+
 function Search-User{
     
     switch($cbSearchCriteria.SelectedIndex){
@@ -24,7 +33,21 @@ function Search-User{
             $criteria = "SAMAccountName"            
         }
     }
-    $User = Get-ADUser -Filter {$criteria -eq $tbSearchUser.Text} -Properties * | Select-Object LastBadPasswordAttempt, PasswordLastSet, PasswordExpired, BadLogonCount, LockedOut, EmployeeID, SAMAccountName
+
+    if($ADEnvironment -eq "True"){
+        Write-Host "AD installed"
+        $User = Get-ADUser -Filter {$criteria -eq $tbSearchUser.Text} -Properties * | Select-Object LastBadPasswordAttempt, PasswordLastSet, PasswordExpired, BadLogonCount, LockedOut, EmployeeID, SAMAccountName
+    }else{
+        $User = [PSCustomObject]@{
+            LastBadPasswordAttempt = Get-Date
+            PasswordLastSet = Get-Date
+            PasswordExpired = "Not Expired"
+            LockedOut = "Not Locked"
+            BadLogonCount = 1
+            EmployeeID = 123456
+            SAMAccountName = "john.doe"
+        }
+    }
     if($User){
         $dgAccountInfo.ItemsSource= @([PSCustomObject]@{
             LastBadPassword = $User.LastBadPasswordAttempt
