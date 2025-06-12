@@ -5,7 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Helpdesk_Tool2"
         mc:Ignorable="d"
-        Title="Help Desk Tool" Height="230" Width="630">
+        Title="Help Desk Tool" Height="280" Width="700">
+    <Window.Resources>
+        <!-- DataGrid style -->
+        <Style x:Key="DataGridStyle1" TargetType="{x:Type DataGrid}">
+            <Setter Property="ColumnHeaderStyle" Value="{DynamicResource ColumnHeaderStyle1}"/>
+        </Style>
+        <!-- DataGridColumnHeader style -->
+        <Style x:Key="ColumnHeaderStyle1" TargetType="DataGridColumnHeader">
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Background" Value="#FFD0D0DC"/>
+            <Setter Property="Foreground" Value="#FF353232"/>
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Black"/>
+        </Style>
+    </Window.Resources>
+
+
     <Grid Background="#FFB8AFAF">
         <TextBox x:Name="tbSearchUser" HorizontalAlignment="Left" Height="22" Margin="120,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="185" Background="#FFDACFCF" BorderBrush="#FF707070"/>
         <Button x:Name="bSearch" Content="Search" HorizontalAlignment="Left" Height="22" Margin="310,10,0,0" VerticalAlignment="Top" Width="82" Cursor="Hand"/>
@@ -13,7 +31,18 @@
             <ComboBoxItem Content="EmployeeID"/>
             <ComboBoxItem Content="SAMAccountName"/>
         </ComboBox>
-        <DataGrid x:Name="dgAccountInfo" HorizontalAlignment="Center" Height="50" VerticalAlignment="Top" Width="586" RowHeight="30" ColumnWidth="*" IsReadOnly="True" BorderBrush="Gray" BorderThickness="1" RowHeaderWidth="0"  HorizontalContentAlignment="Center" FontWeight="Regular" Background="#FFDACFCF" Margin="0,89,0,0">
+
+        <DataGrid Name="dgAccountInfo" Margin="17,90,0,0" Style="{DynamicResource DataGridStyle1}" Height="110" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="646" HorizontalAlignment="Left" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None">
+            <DataGrid.Columns>
+                <!--<DataGridTextColumn Header="PasswordLastSet" Width="*" />
+                <DataGridTextColumn Header="LastBadPassword" Width="*"/>
+                <DataGridTextColumn Header="PasswordExpired" Width="*"/>
+                <DataGridTextColumn Header="LockedOut" Width="*"/>
+                <DataGridTextColumn Header="BadLogonCount" Width="*"/>-->
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!--<DataGrid x:Name="dgAccountInfo" HorizontalAlignment="Center" Height="50" VerticalAlignment="Top" Width="586" RowHeight="30" ColumnWidth="*" IsReadOnly="True" BorderBrush="Gray" BorderThickness="1" RowHeaderWidth="0"  HorizontalContentAlignment="Center" FontWeight="Regular" Background="#FFDACFCF" Margin="0,89,0,0">
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -23,15 +52,15 @@
 
             </DataGrid.Columns>
 
-        </DataGrid>
+        </DataGrid> -->
 
-        <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="104,154,0,0" VerticalAlignment="Top" Width="131" Cursor="Hand"/>
-        <Button x:Name="bUnlock" Content="Unlock" HorizontalAlignment="Left" Height="24" Margin="390,154,0,0" VerticalAlignment="Top" Width="131" Cursor="Hand"/>
+        <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="104,210,0,0" VerticalAlignment="Top" Width="131" Cursor="Hand"/>
+        <Button x:Name="bUnlock" Content="Unlock" HorizontalAlignment="Left" Height="24" Margin="460,210,0,0" VerticalAlignment="Top" Width="131" Cursor="Hand"/>
         <Label x:Name="lEmployeeID" HorizontalAlignment="Left" Height="17" Margin="90,52,0,0"  VerticalAlignment="Top" Width="190"  HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
         <Label x:Name="lSAMAccountName" HorizontalAlignment="Left" Height="17" Margin="326,52,0,0" VerticalAlignment="Top" Width="246" HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
-        <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Center" Height="33" Margin="0,44,0,0" VerticalAlignment="Top" Width="541" Tag="User Info">
+        <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="33" Margin="60,44,0,0" VerticalAlignment="Top" Width="561" Tag="User Info">
 
         </Border>
-        <Label Content="User Info" HorizontalAlignment="Left" Height="18" Margin="66,35,0,0" VerticalAlignment="Top" Width="48" Background="#FFB8AFAF" Padding="0,0,0,5" Foreground="#FF747070"/>
+        <Label Content="User Info" HorizontalAlignment="Left" Height="18" Margin="75,35,0,0" VerticalAlignment="Top" Width="48" Background="#FFB8AFAF" Padding="0,0,0,5" Foreground="#FF747070"/>
     </Grid>
 </Window>

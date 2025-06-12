@@ -1,7 +1,9 @@
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
 $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
+#$WebRequest = Get-Content -Path "C:\Users\bwido\OneDrive\Documents\Code\PowerShell\HelpDesk Tool\MainWindow.xaml"
 [xml]$XAML = $WebRequest.Content
+#[xml]$XAML = $WebRequest
 $XAML.Window.RemoveAttribute('x:Class')
 $XAML.Window.RemoveAttribute('mc:Ignorable')
 $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
@@ -13,6 +15,26 @@ $cbSearchCriteria = $MainWindow.FindName("cbSearchCriteria")
 $tbSearchUser = $MainWindow.FindName("tbSearchUser")
 $lEmployeeID = $MainWindow.FindName("lEmployeeID")
 $lSAMAccountName = $MainWindow.FindName("lSAMAccountName")
+
+
+$dataTable = New-Object System.Data.DataTable
+$Columns = @("LastBadPasswordAttempt","PasswordLastSet","PasswordExpired","LockedOut","BadLogonCount")
+[void]$dataTable.Columns.Add("LastBadPassword", [string])
+[void]$dataTable.Columns.Add("PasswordLastSet", [string])
+[void]$dataTable.Columns.Add("PasswordExpired", [string])
+[void]$dataTable.Columns.Add("LockedOut", [string])
+[void]$dataTable.Columns.Add("BadLogonCount", [int])
+$dgAccountInfo.ItemsSource = $dataTable.DefaultView
+
+$newRow = $dataTable.NewRow()
+$newRow1 = $dataTable.NewRow()
+$newRow2 = $dataTable.NewRow()
+$newRow3 = $dataTable.NewRow()
+$dataTable.Rows.Add($newRow)
+$dataTable.Rows.Add($newRow1)
+$dataTable.Rows.Add($newRow2)
+$dataTable.Rows.Add($newRow3)
+
 
 try{
     Get-ADComputer -Filter * | Select-Object -First 1
@@ -49,13 +71,27 @@ function Search-User{
         }
     }
     if($User){
-        $dgAccountInfo.ItemsSource= @([PSCustomObject]@{
-            LastBadPassword = $User.LastBadPasswordAttempt
-            PasswordLastSet = if($User.PasswordLastSet){$User.PasswordLastSet}else{"Change Password"}
-            PasswordExpired = if($User.PasswordLastSet){if($User.PasswordExpired){"Expired"}else{"Not Expired"}}else{""}
-            LockedOut = if($User.LockedOut){"Locked"}else{"Unlocked"}
-            BadLogonCount = $User.BadLogonCount
-        })
+
+        $newRow["LastBadPasswordAttempt"] = $User.LastBadPasswordAttempt
+        $newRow["PasswordLastSet"] = $User.PasswordLastSet
+
+        #$dataTable.Rows.Add(
+        #[PSCustomObject]@{
+        #    LastBadPassword = $User.LastBadPasswordAttempt
+        #    PasswordLastSet = if($User.PasswordLastSet){$User.PasswordLastSet}else{"Change Password"}
+        #    PasswordExpired = if($User.PasswordLastSet){if($User.PasswordExpired){"Expired"}else{"Not Expired"}}else{""}
+        #    LockedOut = if($User.LockedOut){"Locked"}else{"Unlocked"}
+        #    BadLogonCount = $User.BadLogonCount
+        #})
+        #$dgAccountInfo.ItemsSource= @([PSCustomObject]@{
+         #   LastBadPassword = $User.LastBadPasswordAttempt
+          #  PasswordLastSet = if($User.PasswordLastSet){$User.PasswordLastSet}else{"Change Password"}
+           # PasswordExpired = if($User.PasswordLastSet){if($User.PasswordExpired){"Expired"}else{"Not Expired"}}else{""}
+            #LockedOut = if($User.LockedOut){"Locked"}else{"Unlocked"}
+            #BadLogonCount = $User.BadLogonCount
+        #})
+        #$dgAccountInfo.Items.Add([userData]::new("A","B","C","D",5,"E","F"))
+        $row = $dgAccountInfo
         $lEmployeeID.Content = $User.EmployeeID
         $lSAMAccountName.Content = $User.SAMAccountName
         
