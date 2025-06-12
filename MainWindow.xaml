@@ -32,7 +32,7 @@
             <ComboBoxItem Content="SAMAccountName"/>
         </ComboBox>
 
-        <DataGrid Name="dgAccountInfo" Margin="17,90,0,0" Style="{DynamicResource DataGridStyle1}" Height="110" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="646" HorizontalAlignment="Left" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None">
+        <DataGrid Name="dgAccountInfo" Margin="17,90,0,0" Style="{DynamicResource DataGridStyle1}" Height="110" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="646" HorizontalAlignment="Left" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" >
             <DataGrid.Columns>
                 <!--<DataGridTextColumn Header="PasswordLastSet" Width="*" />
                 <DataGridTextColumn Header="LastBadPassword" Width="*"/>
