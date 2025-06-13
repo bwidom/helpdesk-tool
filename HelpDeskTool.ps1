@@ -18,26 +18,30 @@ $lSAMAccountName = $MainWindow.FindName("lSAMAccountName")
 
 
 $dataTable = New-Object System.Data.DataTable
-$Columns = @("LastBadPasswordAttempt","PasswordLastSet","PasswordExpired","LockedOut","BadLogonCount")
+
+[void]$dataTable.Columns.Add("DC", [string])
 [void]$dataTable.Columns.Add("LastBadPassword", [string])
 [void]$dataTable.Columns.Add("PasswordLastSet", [string])
 [void]$dataTable.Columns.Add("PasswordExpired", [string])
 [void]$dataTable.Columns.Add("LockedOut", [string])
 [void]$dataTable.Columns.Add("BadLogonCount", [int])
+
 $dgAccountInfo.ItemsSource = $dataTable.DefaultView
 
-$newRow = $dataTable.NewRow()
-$newRow1 = $dataTable.NewRow()
-$newRow2 = $dataTable.NewRow()
-$newRow3 = $dataTable.NewRow()
-$dataTable.Rows.Add($newRow)
-$dataTable.Rows.Add($newRow1)
-$dataTable.Rows.Add($newRow2)
-$dataTable.Rows.Add($newRow3)
+$dcs = @(Get-ADDomainController)
+$rows = [Object[]]::new($dcs.Count)
+$rows = [Object[]]::new(1)
+for($i=0; $i -lt $dcs.Count; $i++){
+    $rows[$i] = $dataTable.NewRow()
+    $dataTable.Rows.Add($rows[$i])
+}
 
+#$row = $dataTable.NewRow()
+#$dataTable.Rows.Add($row)
+#$row["LastBadPassword"] = "dwevwe"
 
 try{
-    Get-ADComputer -Filter * | Select-Object -First 1
+    $v=Get-ADComputer -Filter * | Select-Object -First 1
     $ADEnvironment = "True"
 }catch{
     Write-Host "Active Directory not installed, using test data"
@@ -71,27 +75,16 @@ function Search-User{
         }
     }
     if($User){
-
-        $newRow["LastBadPasswordAttempt"] = $User.LastBadPasswordAttempt
-        $newRow["PasswordLastSet"] = $User.PasswordLastSet
-
-        #$dataTable.Rows.Add(
-        #[PSCustomObject]@{
-        #    LastBadPassword = $User.LastBadPasswordAttempt
-        #    PasswordLastSet = if($User.PasswordLastSet){$User.PasswordLastSet}else{"Change Password"}
-        #    PasswordExpired = if($User.PasswordLastSet){if($User.PasswordExpired){"Expired"}else{"Not Expired"}}else{""}
-        #    LockedOut = if($User.LockedOut){"Locked"}else{"Unlocked"}
-        #    BadLogonCount = $User.BadLogonCount
-        #})
-        #$dgAccountInfo.ItemsSource= @([PSCustomObject]@{
-         #   LastBadPassword = $User.LastBadPasswordAttempt
-          #  PasswordLastSet = if($User.PasswordLastSet){$User.PasswordLastSet}else{"Change Password"}
-           # PasswordExpired = if($User.PasswordLastSet){if($User.PasswordExpired){"Expired"}else{"Not Expired"}}else{""}
-            #LockedOut = if($User.LockedOut){"Locked"}else{"Unlocked"}
-            #BadLogonCount = $User.BadLogonCount
-        #})
-        #$dgAccountInfo.Items.Add([userData]::new("A","B","C","D",5,"E","F"))
-        $row = $dgAccountInfo
+        for($i = 0; $i -lt $dcs.Count; $i++){
+            $userInfoOnServer = Get-ADUser -Server $dcs[$i] -Filter {$criteria -eq $tbSearchUser.Text} -Properties * | Select-Object LastBadPasswordAttempt, PasswordLastSet, PasswordExpired, BadLogonCount, LockedOut, EmployeeID, SAMAccountName
+            $rows[$i]["LastBadPassword"] = $userInfoOnServer.LastBadPasswordAttempt
+            $rows[$i]["PasswordLastSet"] = if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}
+            $rows[$i]["PasswordExpired"] = if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}
+            $rows[$i]["LockedOut"] = if($userInfoOnServer.LockedOut){"Locked"}else{"Unlocked"}
+            $rows[$i]["BadLogonCount"] = $userInfoOnServer.BadLogonCount
+            $rows[$i]["DC"] = $dcs[$i].Name
+        }
+        
         $lEmployeeID.Content = $User.EmployeeID
         $lSAMAccountName.Content = $User.SAMAccountName
         
