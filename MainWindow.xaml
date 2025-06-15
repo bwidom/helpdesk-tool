@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Helpdesk_Tool2"
         mc:Ignorable="d"
-        Title="Help Desk Tool" Height="280" Width="700">
+        Title="Help Desk Tool" Height="280" Width="900">
     <Window.Resources>
         <!-- DataGrid style -->
         <Style x:Key="DataGridStyle1" TargetType="{x:Type DataGrid}">
@@ -20,6 +20,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="Black"/>
+
         </Style>
     </Window.Resources>
 
@@ -32,35 +33,14 @@
             <ComboBoxItem Content="SAMAccountName"/>
         </ComboBox>
 
-        <DataGrid Name="dgAccountInfo" Margin="17,90,0,0" Style="{DynamicResource DataGridStyle1}" Height="110" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="646" HorizontalAlignment="Left" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" >
-            <DataGrid.Columns>
-                <!--<DataGridTextColumn Header="PasswordLastSet" Width="*" />
-                <DataGridTextColumn Header="LastBadPassword" Width="*"/>
-                <DataGridTextColumn Header="PasswordExpired" Width="*"/>
-                <DataGridTextColumn Header="LockedOut" Width="*"/>
-                <DataGridTextColumn Header="BadLogonCount" Width="*"/>-->
-            </DataGrid.Columns>
-        </DataGrid>
+    <DataGrid Name="dgAccountInfo" Margin="0,87,0,0" Style="{DynamicResource DataGridStyle1}" Height="177"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None" Width="900" Background="#FFB8AFAF" BorderBrush="{x:Null}" RowBackground="#FFB8AFAF"/>
 
-        <!--<DataGrid x:Name="dgAccountInfo" HorizontalAlignment="Center" Height="50" VerticalAlignment="Top" Width="586" RowHeight="30" ColumnWidth="*" IsReadOnly="True" BorderBrush="Gray" BorderThickness="1" RowHeaderWidth="0"  HorizontalContentAlignment="Center" FontWeight="Regular" Background="#FFDACFCF" Margin="0,89,0,0">
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="HorizontalContentAlignment" Value="Center" />
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-            <DataGrid.Columns>
 
-            </DataGrid.Columns>
-
-        </DataGrid> -->
-
-        <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="104,210,0,0" VerticalAlignment="Top" Width="131" Cursor="Hand"/>
-        <Button x:Name="bUnlock" Content="Unlock" HorizontalAlignment="Left" Height="24" Margin="460,210,0,0" VerticalAlignment="Top" Width="131" Cursor="Hand"/>
-        <Label x:Name="lEmployeeID" HorizontalAlignment="Left" Height="17" Margin="90,52,0,0"  VerticalAlignment="Top" Width="190"  HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
-        <Label x:Name="lSAMAccountName" HorizontalAlignment="Left" Height="17" Margin="326,52,0,0" VerticalAlignment="Top" Width="246" HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
-        <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="33" Margin="60,44,0,0" VerticalAlignment="Top" Width="561" Tag="User Info">
-
-        </Border>
-        <Label Content="User Info" HorizontalAlignment="Left" Height="18" Margin="75,35,0,0" VerticalAlignment="Top" Width="48" Background="#FFB8AFAF" Padding="0,0,0,5" Foreground="#FF747070"/>
+        <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="0,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
+        <Button x:Name="bUnlock" Content="Unlock" HorizontalAlignment="Left" Height="24" Margin="213,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
+        <Label x:Name="lEmployeeID" HorizontalAlignment="Left" Height="17" Margin="450,17,0,0"  VerticalAlignment="Top" Width="138"  HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
+        <Label x:Name="lSAMAccountName" HorizontalAlignment="Left" Height="17" Margin="630,17,0,0" VerticalAlignment="Top" Width="138" HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
+        <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="33" VerticalAlignment="Top" Width="398" Tag="User Info" Margin="407,8,0,0"/>
+        <Label Content="User Info" HorizontalAlignment="Center" Height="18" VerticalAlignment="Top" Width="48" Background="#FFB8AFAF" Padding="0,0,0,5" Foreground="#FF747070" Margin="0,1,0,0"/>
     </Grid>
 </Window>
