@@ -33,7 +33,8 @@
             <ComboBoxItem Content="SAMAccountName"/>
         </ComboBox>
 
-        <DataGrid Name="dgAccountInfo" Margin="0,87,0,0" Padding="5,0,0,0" Style="{DynamicResource DataGridStyle1}" Height="177"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None" Width="900" Background="#FFB8AFAF" BorderBrush="{x:Null}" RowBackground="#FFB8AFAF"/>
+
+    <DataGrid Name="dgAccountInfo" Margin="0,87,0,0" Padding="5,0,0,0" Style="{DynamicResource DataGridStyle1}" Height="177"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None" Width="900" Background="#FFB8AFAF" BorderBrush="{x:Null}" RowBackground="#FFB8AFAF"/>
 
 
         <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="0,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
