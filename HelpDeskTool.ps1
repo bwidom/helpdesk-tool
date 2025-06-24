@@ -28,7 +28,7 @@ $dataTable = New-Object System.Data.DataTable
 $dgAccountInfo.ItemsSource = $dataTable.DefaultView
 
 
-$dcs = @(Get-ADDomainController -Filter *)
+$dcs = @(Get-ADDomainController -Filter * | Sort-Object -Property Name)
 $rows = [Object[]]::new($dcs.Count)
 for($i=0; $i -lt $dcs.Count; $i++){
     $rows[$i] = $dataTable.NewRow()
@@ -38,6 +38,7 @@ for($i=0; $i -lt $dcs.Count; $i++){
 
 function Search-User{
     $lEmployeeID.Content = "Collecting data..."
+    $lSAMAccountName.Content = ""
     [System.Windows.Forms.Application]::DoEvents()
     switch($cbSearchCriteria.SelectedIndex){
         0{
