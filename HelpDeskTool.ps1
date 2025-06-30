@@ -51,11 +51,11 @@ function Search-User{
 
     $properties = @("LastBadPasswordAttempt", "PasswordLastSet", "PasswordExpired", "BadLogonCount", "LockedOut", "EmployeeID", "SAMAccountName")
 
-    $countUser = @(Get-ADUser -Filter {$criteria -eq $tbSearchUser.Text})
+    $countUser = @(Get-ADUser -Filter {($criteria -eq $tbSearchUser.Text) -AND (Enabled -eq $true)})
     if($countUser.Count -eq 1){
         for($i = 0; $i -lt $dcs.Count; $i++){ 
             if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
-                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter {$criteria -eq $tbSearchUser.Text} -Properties $properties| Select-Object $properties)
+                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter {($criteria -eq $tbSearchUser.Text) -AND (Enabled -eq $true)} -Properties $properties| Select-Object $properties)
                 $rows[$i]["LastBadPassword"] = $userInfoOnServer.LastBadPasswordAttempt
                 $rows[$i]["PasswordLastSet"] = if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}
                 $rows[$i]["PasswordExpired"] = if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}
