@@ -2,8 +2,6 @@ Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
 $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
 [xml]$XAML = $WebRequest.Content
-#$WebRequest = Get-Content -Path "C:\Users\DCAdmin\Documents\help-desk-tool\MainWindow.xaml"
-#[xml]$XAML = $WebRequest
 $XAML.Window.RemoveAttribute('x:Class')
 $XAML.Window.RemoveAttribute('mc:Ignorable')
 $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
