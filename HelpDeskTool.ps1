@@ -57,7 +57,7 @@ function Search-User{
                 $rows[$i]["LastBadPassword"] = $userInfoOnServer.LastBadPasswordAttempt
                 $rows[$i]["PasswordLastSet"] = if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}
                 $rows[$i]["PasswordExpired"] = if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}
-                $rows[$i]["LockedOut"] = if((Get-ADUser john.doe -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}
+                $rows[$i]["LockedOut"] = if((Get-ADUser -Filter {($criteria -eq $tbSearchUser.Text) -AND (Enabled -eq $true)} -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}
                 $rows[$i]["BadLogonCount"] = if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{[DBNull]::Value}
                 $rows[$i]["DC Name"] = $dcs[$i].Name
             }else{
