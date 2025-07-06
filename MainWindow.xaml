@@ -34,13 +34,13 @@
         </ComboBox>
 
 
-    <DataGrid Name="dgAccountInfo" Margin="0,87,0,0" Padding="5,0,0,0" Style="{DynamicResource DataGridStyle1}" Height="177"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None" Width="900" Background="#FFB8AFAF" BorderBrush="{x:Null}" RowBackground="#FFB8AFAF"/>
+    <DataGrid Name="dgAccountInfo" Margin="0,87,0,0" Padding="5,0,0,0" Style="{DynamicResource DataGridStyle1}" Height="177"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None" Width="900" Background="#FFB8AFAF" BorderBrush="{x:Null}" RowBackground="#FFB8AFAF" SelectionUnit="Cell"/>
 
 
         <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="0,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
         <Button x:Name="bUnlock" Content="Unlock" HorizontalAlignment="Left" Height="24" Margin="213,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
-        <Label x:Name="lEmployeeID" HorizontalAlignment="Left" Height="17" Margin="450,17,0,0"  VerticalAlignment="Top" Width="138"  HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
-        <Label x:Name="lSAMAccountName" HorizontalAlignment="Left" Height="17" Margin="630,17,0,0" VerticalAlignment="Top" Width="138" HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
+        <TextBox x:Name="lEmployeeID" IsReadOnly="True" HorizontalAlignment="Left" SelectionTextBrush="{x:Null}" BorderThickness="0" Height="17" Margin="450,17,0,0"  VerticalAlignment="Top" Width="138"  HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
+        <TextBox x:Name="lSAMAccountName"  IsReadOnly="True" HorizontalAlignment="Left" SelectionTextBrush="{x:Null}" BorderThickness="0" Height="17" Margin="630,17,0,0" VerticalAlignment="Top" Width="138" HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
         <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="33" VerticalAlignment="Top" Width="398" Tag="User Info" Margin="407,8,0,0"/>
         <Label Content="User Info" HorizontalAlignment="Center" Height="18" VerticalAlignment="Top" Width="48" Background="#FFB8AFAF" Padding="0,0,0,5" Foreground="#FF747070" Margin="0,1,0,0"/>
     </Grid>
