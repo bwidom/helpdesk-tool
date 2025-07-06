@@ -1,7 +1,9 @@
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
-$WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
-[xml]$XAML = $WebRequest.Content
+#$WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
+#[xml]$XAML = $WebRequest.Content
+$WebRequest = Get-Content "C:\Users\brian\helpdesk-tool\MainWindow.xaml"
+[xml]$XAML = $WebRequest
 
 $XAML.Window.RemoveAttribute('x:Class')
 $XAML.Window.RemoveAttribute('mc:Ignorable')
@@ -14,6 +16,8 @@ $cbSearchCriteria = $MainWindow.FindName("cbSearchCriteria")
 $tbSearchUser = $MainWindow.FindName("tbSearchUser")
 $lEmployeeID = $MainWindow.FindName("lEmployeeID")
 $lSAMAccountName = $MainWindow.FindName("lSAMAccountName")
+$tbComputerSearch = $MainWindow.FindName("tbComputerSearch")
+$lbSessions = $MainWindow.FindName("lbSessions")
 
 $tbSearchUser.Focus() | Out-Null
 
@@ -115,7 +119,7 @@ function Create-PasswordWindow{
         $XAML.SelectNodes("//*[@Name]") | %{Set-Variable -Name ($_.Name) -Value $ChangePasswordWindow.FindName($_.Name)}
 
         $lChangePasswordPrompt = $ChangePasswordWindow.FindName("lChangePasswordPrompt")
-        $lChangePasswordPrompt.Content = "Change " + $lSAMAccountName.Content + "'s password to:"
+        $lChangePasswordPrompt.Content = "Change " + $lSAMAccountName.Text + "'s password to:"
 
         if(($lEmployeeID.Content.length -lt 2)){
             $Digits = '00'
@@ -209,6 +213,42 @@ function Clear-Window{
     $lSAMAccountName.Text = ""
 }
 
+function Search-Computer{
+    $computerName = @(Get-ADComputer -Identity $tbComputerSearch.Text)
+    #Add selection for more than one computer
+    if($computerName.Count -eq 1){
+    
+        $alAvailableSessions = [System.Collections.ArrayList]::new()
+    
+        $sessions = (qwinsta /server $tbComputerSearch.Text).split("`n")
+
+        for($i = 1; $i -lt $sessions.count; $i++){
+            if($sessions[$i].Substring(19,1).Trim() -ne [string]::Empty){
+                [void] $alAvailableSessions.Add([pscustomObject]@{
+                    sessionName = $sessions[$i].Substring(19,20).Trim()
+                    sessionID = $sessions[$i].Substring(41,5).Trim()
+                })
+            }
+        }
+
+        foreach($session in $alAvailableSessions){
+            $lbSessions.AddChild("$($session.sessionName)           $($session.sessionID)")
+        }
+    }
+
+    #Add extra info
+}
+
+function Start-Shadow{
+    if($lbSessions.SelectedItem){
+        $selectedSession = $lbSessions.SelectedItem
+        $sessionID = (-split $selectedSession)[1]
+        mstsc.exe /v:$tbComputerSearch /shadow:$sessionID /f /span
+    }else{
+        #Write error message if not item selected/no computer selected
+    }
+}
+
 $bSearch = $MainWindow.FindName("bSearch")
 $bSearch.Add_Click({Search-User})
 
@@ -218,5 +258,10 @@ $bUnlock.Add_Click({Unlock-User})
 $bChangePassword = $MainWindow.FindName("bChangePassword")
 $bChangePassword.Add_Click({Create-PasswordWindow})
 
+$bSearchComputer = $MainWindow.FindName("bSearchComputer")
+$bSearchComputer.Add_Click({Search-Computer})
+
+$bShadow = $MainWindow.FindName("bShadow")
+$bShadow.Add_Click({Start-Shadow})
 
 $MainWindow.ShowDialog() | Out-Null
