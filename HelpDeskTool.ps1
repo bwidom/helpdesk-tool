@@ -2,6 +2,7 @@ Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
 $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
 [xml]$XAML = $WebRequest.Content
+
 $XAML.Window.RemoveAttribute('x:Class')
 $XAML.Window.RemoveAttribute('mc:Ignorable')
 $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
@@ -13,6 +14,8 @@ $cbSearchCriteria = $MainWindow.FindName("cbSearchCriteria")
 $tbSearchUser = $MainWindow.FindName("tbSearchUser")
 $lEmployeeID = $MainWindow.FindName("lEmployeeID")
 $lSAMAccountName = $MainWindow.FindName("lSAMAccountName")
+
+$tbSearchUser.Focus() | Out-Null
 
 $dataTable = New-Object System.Data.DataTable
 
@@ -28,6 +31,8 @@ $dgAccountInfo.ItemsSource = $dataTable.DefaultView
 
 $dcs = @(Get-ADDomainController -Filter * | Sort-Object -Property Name)
 $rows = [Object[]]::new($dcs.Count)
+
+
 for($i=0; $i -lt $dcs.Count; $i++){
     $rows[$i] = $dataTable.NewRow()
     $dataTable.Rows.Add($rows[$i])
@@ -35,29 +40,30 @@ for($i=0; $i -lt $dcs.Count; $i++){
 
 
 function Search-User{
-    $lEmployeeID.Content = "Collecting data..."
-    $lSAMAccountName.Content = ""
+    $lEmployeeID.Text = "Collecting data..."
+    $lSAMAccountName.Text = ""
     [System.Windows.Forms.Application]::DoEvents()
     switch($cbSearchCriteria.SelectedIndex){
         0{
-            $criteria = "EmployeeID"
+            $filter = "(EmployeeID -eq "+$tbSearchUser.Text+") "
         }
         1{
-            $criteria = "SAMAccountName"            
+            $x = "*"+$tbSearchUser.Text+"*"
+            $filter = "Name -like '$x'"          
         }
     }
 
     $properties = @("LastBadPasswordAttempt", "PasswordLastSet", "PasswordExpired", "BadLogonCount", "LockedOut", "EmployeeID", "SAMAccountName")
 
-    $countUser = @(Get-ADUser -Filter {($criteria -eq $tbSearchUser.Text) -AND (Enabled -eq $true)})
+    $countUser = @(Get-ADUser -Filter $filter)
     if($countUser.Count -eq 1){
         for($i = 0; $i -lt $dcs.Count; $i++){ 
             if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
-                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter {($criteria -eq $tbSearchUser.Text) -AND (Enabled -eq $true)} -Properties $properties| Select-Object $properties)
+                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties| Select-Object $properties)
                 $rows[$i]["LastBadPassword"] = $userInfoOnServer.LastBadPasswordAttempt
                 $rows[$i]["PasswordLastSet"] = if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}
                 $rows[$i]["PasswordExpired"] = if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}
-                $rows[$i]["LockedOut"] = if((Get-ADUser -Filter {($criteria -eq $tbSearchUser.Text) -AND (Enabled -eq $true)} -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}
+                $rows[$i]["LockedOut"] = if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}
                 $rows[$i]["BadLogonCount"] = if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{[DBNull]::Value}
                 $rows[$i]["DC Name"] = $dcs[$i].Name
             }else{
@@ -65,8 +71,8 @@ function Search-User{
                 $rows[$i]["LockedOut"] = "DC Unavailable"
             }
         }
-        $lEmployeeID.Content = $userInfoOnServer.EmployeeID
-        $lSAMAccountName.Content = $userInfoOnServer.SAMAccountName
+        $lEmployeeID.Text = $userInfoOnServer.EmployeeID
+        $lSAMAccountName.Text = $userInfoOnServer.SAMAccountName
     }elseif($countUser.Count -eq 0){
         for($i = 0; $i -lt $dcs.Count; $i++){             
             $rows[$i]["LastBadPassword"] = [string]::Empty
@@ -76,27 +82,19 @@ function Search-User{
             $rows[$i]["BadLogonCount"] = [DBNull]::Value
             $rows[$i]["DC Name"] = [string]::Empty
         }
-        $lEmployeeID.Content = "User Not Found"
-        $lSAMAccountName.Content = ""
+        $lEmployeeID.Text = "User Not Found"
+        $lSAMAccountName.Text = ""
     }elseif($countUser.Count -gt 1){
-        for($i = 0; $i -lt $dcs.Count; $i++){             
-            $rows[$i]["LastBadPassword"] = [string]::Empty
-            $rows[$i]["PasswordLastSet"] = [string]::Empty
-            $rows[$i]["PasswordExpired"] = [string]::Empty
-            $rows[$i]["LockedOut"] = [string]::Empty
-            $rows[$i]["BadLogonCount"] = [DBNull]::Value
-            $rows[$i]["DC Name"] = [string]::Empty
-        }
-        $lEmployeeID.Content = "Multiple Users Found"
-        $lSAMAccountName.Content = ""
+        Create-SelectUserWindow
+       
     }
 }
 
 function Unlock-User{
-    if($lSAMAccountName.Content){
+    if($lSAMAccountName.Text){
         foreach($dc in $dcs){
             if(Test-Connection ($dc).Name -Count 1 -Quiet){
-                Unlock-ADAccount -Identity $lSAMAccountName.Content -Server $dc
+                Unlock-ADAccount -Identity $lSAMAccountName.Text -Server $dc
             }
         }
         Search-User
@@ -106,8 +104,8 @@ function Unlock-User{
 }
 
 
-function Spawn-PasswordWindow{
-    if($lSAMAccountName.Content){
+function Create-PasswordWindow{
+    if($lSAMAccountName.Text){
         $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/ChangePasswordWindow.xaml"
         [xml]$XAML = $WebRequest.Content
         $XAML.Window.RemoveAttribute('x:Class')
@@ -119,14 +117,18 @@ function Spawn-PasswordWindow{
         $lChangePasswordPrompt = $ChangePasswordWindow.FindName("lChangePasswordPrompt")
         $lChangePasswordPrompt.Content = "Change " + $lSAMAccountName.Content + "'s password to:"
 
-        $digits = $lEmployeeID.Content.Substring($lEmployeeID.Content.Length - 2)
+        if(($lEmployeeID.Content.length -lt 2)){
+            $Digits = '00'
+        }else{
+            $digits = $lEmployeeID.Text.Substring($lEmployeeID.Content.Length - 2)
+        }
         $password = "Changepasswordnow" + $Digits
         $tbNewPassword = $ChangePasswordWindow.FindName("tbNewPassword")
         $tbNewPassword.Text = $password
 
         function Change-UserPassword{
-            Set-ADAccountPassword -Identity $lSAMAccountName.Content -NewPassword (ConvertTo-SecureString -AsPlainText $tbNewPassword.Text -Force) -Reset
-            #Set-ADUser -Identity $lSAMAccountName.Content -ChangePasswordAtLogon $true
+            Set-ADAccountPassword -Identity $lSAMAccountName.Text -NewPassword (ConvertTo-SecureString -AsPlainText $tbNewPassword.Text -Force) -Reset
+            Set-ADUser -Identity $lSAMAccountName.Text -ChangePasswordAtLogon $true
             [System.Windows.Forms.MessageBox]::Show("Password Changed")
             $ChangePasswordWindow.Close()
         }
@@ -141,6 +143,59 @@ function Spawn-PasswordWindow{
     }
 }
 
+function Create-SelectUserWindow{
+
+    $WebRequest = Invoke-WebRequest "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/SelectUserWindow.xaml"
+    [xml]$XAML = $WebRequest.Content
+    $XAML.Window.RemoveAttribute('x:Class')
+    $XAML.Window.RemoveAttribute('mc:Ignorable')
+    $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
+    $SelectUserWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
+    $XAML.SelectNodes("//*[@Name]") | %{Set-Variable -Name ($_.Name) -Value $ChangePasswordWindow.FindName($_.Name)}
+    
+    $lbUsers = $SelectUserWindow.FindName('lbUsers')
+    $userInfo = $userInfoOnServer = @(Get-ADUser -Filter $filter)
+    foreach($u in $userInfo){
+        $lbUsers.AddChild($u.Name)
+    }
+
+    $bSelectUser = $SelectUserWindow.FindName('bSelectUser')
+    $bSelectUser.Add_Click({Select-User})
+
+    $bCancel = $SelectUserWindow.FindName('bCancel')
+    $bCancel.Add_Click({
+        $SelectUserWindow.Close()
+        $lEmployeeID.Text = ''
+        $lSAMAccountName.Text = ''
+    })
+
+    function Select-User{
+        $lEmployeeID.Text = "Collecting data..."
+        $lSAMAccountName.Text = ""
+        $user = $lbUsers.SelectedItem
+        for($i = 0; $i -lt $dcs.Count; $i++){ 
+            if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
+                $userInfoOnServer = @(Get-ADUser $user -Server $dcs[$i] -Properties $properties| Select-Object $properties)
+                $rows[$i]["LastBadPassword"] = $userInfoOnServer.LastBadPasswordAttempt
+                $rows[$i]["PasswordLastSet"] = if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}
+                $rows[$i]["PasswordExpired"] = if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}
+                $rows[$i]["LockedOut"] = if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}
+                $rows[$i]["BadLogonCount"] = if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{[DBNull]::Value}
+                $rows[$i]["DC Name"] = $dcs[$i].Name
+            }else{
+                $rows[$i]["DC Name"] = $dcs[$i].Name
+                $rows[$i]["LockedOut"] = "DC Unavailable"
+            }
+        }
+        $lEmployeeID.Text = $userInfoOnServer.EmployeeID
+        $lSAMAccountName.Text = $userInfoOnServer.SAMAccountName
+        $SelectUserWindow.Close()
+    }
+
+    
+    $SelectUserWindow.ShowDialog() | Out-Null
+}
+
 function Clear-Window{
     for($i = 0; $i -lt $dcs.Count; $i++){             
         $rows[$i]["LastBadPassword"] = [string]::Empty
@@ -150,8 +205,8 @@ function Clear-Window{
         $rows[$i]["BadLogonCount"] = [DBNull]::Value
         $rows[$i]["DC Name"] = [string]::Empty
     }
-    $lEmployeeID.Content = "User Not Found"
-    $lSAMAccountName.Content = ""
+    $lEmployeeID.Text = "User Not Found"
+    $lSAMAccountName.Text = ""
 }
 
 $bSearch = $MainWindow.FindName("bSearch")
@@ -161,7 +216,7 @@ $bUnlock = $MainWindow.FindName("bUnlock")
 $bUnlock.Add_Click({Unlock-User})
 
 $bChangePassword = $MainWindow.FindName("bChangePassword")
-$bChangePassword.Add_Click({Spawn-PasswordWindow})
+$bChangePassword.Add_Click({Create-PasswordWindow})
 
 
 $MainWindow.ShowDialog() | Out-Null
