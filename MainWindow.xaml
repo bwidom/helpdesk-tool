@@ -30,7 +30,7 @@
         <Button x:Name="bSearch" Content="Search" HorizontalAlignment="Left" Height="22" Margin="310,10,0,0" VerticalAlignment="Top" Width="82" Cursor="Hand"/>
         <ComboBox x:Name="cbSearchCriteria" HorizontalAlignment="Left" Height="22" Margin="15,10,0,0" VerticalAlignment="Top" Width="102" SelectedIndex="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
             <ComboBoxItem Content="EmployeeID"/>
-            <ComboBoxItem Content="SAMAccountName"/>
+            <ComboBoxItem Content="Name"/>
         </ComboBox>
 
 
