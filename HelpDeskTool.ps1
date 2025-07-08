@@ -1,9 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
-#$WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
-#[xml]$XAML = $WebRequest.Content
-$WebRequest = Get-Content "C:\Users\brian\helpdesk-tool\MainWindow.xaml"
-[xml]$XAML = $WebRequest
+$WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
+[xml]$XAML = $WebRequest.Content
 
 $XAML.Window.RemoveAttribute('x:Class')
 $XAML.Window.RemoveAttribute('mc:Ignorable')
@@ -121,10 +119,10 @@ function Create-PasswordWindow{
         $lChangePasswordPrompt = $ChangePasswordWindow.FindName("lChangePasswordPrompt")
         $lChangePasswordPrompt.Content = "Change " + $lSAMAccountName.Text + "'s password to:"
 
-        if(($lEmployeeID.Content.length -lt 2)){
+        if(($lEmployeeID.Text.length -lt 2)){
             $Digits = '00'
         }else{
-            $digits = $lEmployeeID.Text.Substring($lEmployeeID.Content.Length - 2)
+            $digits = $lEmployeeID.Text.Substring($lEmployeeID.Text.Length - 2)
         }
         $password = "Changepasswordnow" + $Digits
         $tbNewPassword = $ChangePasswordWindow.FindName("tbNewPassword")
