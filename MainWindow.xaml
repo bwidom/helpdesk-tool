@@ -1,12 +1,12 @@
-<Window x:Class="Helpdesk_Tool2.MainWindow"
+<Window x:Class="WpfApp2.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Helpdesk_Tool2"
+        xmlns:local="clr-namespace:WpfApp2"
         mc:Ignorable="d"
         Title="MainWindow" Height="280" Width="900">
-	    <Window.Resources>
+    <Window.Resources>
         <!-- DataGrid style -->
         <Style x:Key="DataGridStyle1" TargetType="{x:Type DataGrid}">
             <Setter Property="ColumnHeaderStyle" Value="{DynamicResource ColumnHeaderStyle1}"/>
@@ -52,14 +52,21 @@
             </TabItem>
             <TabItem Header="Computers">
                 <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="tbComputerSearch" HorizontalAlignment="Left" Margin="117,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="106" Height="19"/>
+                    <TextBox x:Name="tbComputerSearch" HorizontalAlignment="Left" Height="22" Margin="116,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="185" Background="#FFE5E5E5" BorderBrush="#FF707070"/>
                     <Label Content="Computer Name:" HorizontalAlignment="Left" Height="30" Margin="10,10,0,0" VerticalAlignment="Top" Width="104"/>
-                    <ListBox x:Name="lbSessions" HorizontalAlignment="Left" Height="99" Margin="7,71,0,0" VerticalAlignment="Top" Width="440"/>
-                    <Label Content="Sessions" HorizontalAlignment="Left" Height="26" Margin="13,40,0,0" VerticalAlignment="Top" Width="163"/>
-                    <Button x:Name="bSearchComputer" Content="Search" HorizontalAlignment="Left" Height="20" Margin="240,13,0,0" VerticalAlignment="Top" Width="149"/>
-                    <Button x:Name="bShadow" Content="Shadow" HorizontalAlignment="Left" Margin="14,179,0,0" VerticalAlignment="Top" Width="144"/>
-                    <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="153" Margin="492,17,0,0" VerticalAlignment="Top" Width="373"/>
+                    <ListBox x:Name="lbSessions" Background="{x:Null}" HorizontalAlignment="Left" Height="99" Margin="7,71,0,0" VerticalAlignment="Top" Width="440"/>
+                    <Label Content="Sessions" HorizontalAlignment="Left" Height="26" Margin="10,40,0,0" VerticalAlignment="Top" Width="163"/>
+                    <Button x:Name="bSearchComputer" Content="Search" HorizontalAlignment="Left" Height="22" Margin="310,14,0,0" VerticalAlignment="Top" Width="82" Cursor="Hand"/>
+                    <Button x:Name="bShadow" Content="Shadow" HorizontalAlignment="Left" Height="24" Margin="14,179,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
+                    <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="153" Margin="492,17,0,0" VerticalAlignment="Top" Width="373">
+                    </Border>
                     <Label Content="Computer Info" Background="#FFE5E5E5" HorizontalAlignment="Left" Margin="518,9,0,0" VerticalAlignment="Top" Width="79" Padding="0,0,0,0"/>
+                    <Label Content="Name:" HorizontalAlignment="Left" Height="19" Margin="518,30,0,0" VerticalAlignment="Top" Width="41" Padding="0,0,0,0"/>
+                    <TextBox x:Name="tbComputerName" IsReadOnly="True" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" BorderThickness="0" HorizontalAlignment="Left" Height="19" Margin="650,30,0,0" VerticalAlignment="Top" Width="178" Padding="0,0,0,0"/>
+                    <Label Content="IP Address:" HorizontalAlignment="Left" Height="19" Margin="518,54,0,0" VerticalAlignment="Top" Width="60" Padding="0,0,0,0"/>
+                    <TextBox x:Name="tbIPAddress" IsReadOnly="True" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" BorderThickness="0" HorizontalAlignment="Left" Height="19" Margin="650,54,0,0" VerticalAlignment="Top" Width="178" Padding="0,0,0,0"/>
+                    <Label Content="Free Disk Space:" HorizontalAlignment="Left" Height="19" Margin="518,78,0,0" VerticalAlignment="Top" Width="93" Padding="0,0,0,0"/>
+                    <TextBox x:Name="tpFreeDiskSpace" IsReadOnly="True" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" BorderThickness="0" HorizontalAlignment="Left" Height="19" Margin="650,78,0,0" VerticalAlignment="Top" Width="178" Padding="0,0,0,0"/>
                 </Grid>
             </TabItem>
         </TabControl>
