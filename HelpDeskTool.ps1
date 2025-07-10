@@ -62,11 +62,11 @@ function Search-User{
         for($i = 0; $i -lt $dcs.Count; $i++){ 
             if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
                 $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties| Select-Object $properties)
-                $rows[$i]["LastBadPassword"] = $userInfoOnServer.LastBadPasswordAttempt
+                $rows[$i]["LastBadPassword"] = if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}
                 $rows[$i]["PasswordLastSet"] = if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}
                 $rows[$i]["PasswordExpired"] = if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}
                 $rows[$i]["LockedOut"] = if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}
-                $rows[$i]["BadLogonCount"] = if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{[DBNull]::Value}
+                $rows[$i]["BadLogonCount"] = if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}
                 $rows[$i]["DC Name"] = $dcs[$i].Name
             }else{
                 $rows[$i]["DC Name"] = $dcs[$i].Name
@@ -129,9 +129,11 @@ function Create-PasswordWindow{
         $tbNewPassword.Text = $password
 
         function Change-UserPassword{
+            Write-Host "Changing Password of $($lSAMAccountName.Text) to $($tbNewPassword.Text)"
             Set-ADAccountPassword -Identity $lSAMAccountName.Text -NewPassword (ConvertTo-SecureString -AsPlainText $tbNewPassword.Text -Force) -Reset
             Set-ADUser -Identity $lSAMAccountName.Text -ChangePasswordAtLogon $true
             [System.Windows.Forms.MessageBox]::Show("Password Changed")
+            Write-Host "$(($lSAMAccountName.Text)) password changed to $($tbNewPassword.Text). Password must change at login"
             $ChangePasswordWindow.Close()
         }
 
