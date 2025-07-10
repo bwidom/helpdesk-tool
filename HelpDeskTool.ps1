@@ -16,6 +16,9 @@ $lEmployeeID = $MainWindow.FindName("lEmployeeID")
 $lSAMAccountName = $MainWindow.FindName("lSAMAccountName")
 $tbComputerSearch = $MainWindow.FindName("tbComputerSearch")
 $lbSessions = $MainWindow.FindName("lbSessions")
+$tbComputerName = $MainWindow.FindName('tbComputerName')
+$tbIPAddress = $MainWindow.FindName('tbIPAddress')
+$tbFreeDiskSpace = $MainWindow.FindName('tpFreeDiskSpace')
 
 $tbSearchUser.Focus() | Out-Null
 
@@ -213,9 +216,14 @@ function Clear-Window{
     $lSAMAccountName.Text = ""
 }
 
-function Search-Computer{
-    $computerName = @(Get-ADComputer -Identity $tbComputerSearch.Text)
-    #Add selection for more than one computer
+function Search-Computer{    
+    $lbSessions.Items.Clear()
+    $tbComputerName.Text = ""
+    $tbIPAddress.Text =  ""
+    $tbFreeDiskSpace.Text = ""
+    try{
+        $computerName = @(Get-ADComputer -Identity $tbComputerSearch.Text)
+        #Add selection for more than one computer
     if($computerName.Count -eq 1){
     
         $alAvailableSessions = [System.Collections.ArrayList]::new()
@@ -234,9 +242,15 @@ function Search-Computer{
         foreach($session in $alAvailableSessions){
             $lbSessions.AddChild("$($session.sessionName)           $($session.sessionID)")
         }
+        $tbComputerName.Text = $computerName.Name
+        $tbIPAddress.Text =  Invoke-Command -ComputerName $computerName.Name -ScriptBlock { Get-NetIPAddress | Where-Object {$_.AddressFamily -eq 'IPv4' -and $_.InterfaceAlias -notmatch 'Loopback|Bluetooth'} | Select-Object -ExpandProperty IPAddress }
+        $tbFreeDiskSpace.Text = "$((Get-CimInstance -ComputerName $computerName.Name -ClassName Win32_LogicalDisk | Where-Object {$_.DeviceID -eq 'C:'} | Select-Object  @{Name="FreeSpacePercent"; Expression={[Math]::Round(($_.FreeSpace / $_.Size) * 100)}}).FreeSpacePercent)%"
     }
+    }catch{
+        Write-Host $_
+    }
+    
 
-    #Add extra info
 }
 
 function Start-Shadow{
