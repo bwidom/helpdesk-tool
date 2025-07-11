@@ -18,7 +18,9 @@ $tbComputerSearch = $MainWindow.FindName("tbComputerSearch")
 $lbSessions = $MainWindow.FindName("lbSessions")
 $tbComputerName = $MainWindow.FindName('tbComputerName')
 $tbIPAddress = $MainWindow.FindName('tbIPAddress')
-$tbFreeDiskSpace = $MainWindow.FindName('tpFreeDiskSpace')
+$tbFreeDiskSpace = $MainWindow.FindName('tbFreeDiskSpace')
+$tbMemoryUsage = $MainWindow.FindName('tbMemoryUsage')
+$tbLastBootTime = $MainWindow.FindName('tbLastBootTime')
 
 $tbSearchUser.Focus() | Out-Null
 
@@ -218,9 +220,11 @@ function Clear-Window{
 
 function Search-Computer{    
     $lbSessions.Items.Clear()
-    $tbComputerName.Text = ""
-    $tbIPAddress.Text =  ""
-    $tbFreeDiskSpace.Text = ""
+    $tbComputerName.Text = ''
+    $tbIPAddress.Text =  ''
+    $tbFreeDiskSpace.Text = ''
+    $tbMemoryUsage.Text = ''
+    $tbLastBootTime.Text = ''
     try{
         $computerName = @(Get-ADComputer -Identity $tbComputerSearch.Text)
         #Add selection for more than one computer
@@ -229,12 +233,14 @@ function Search-Computer{
         $alAvailableSessions = [System.Collections.ArrayList]::new()
     
         $sessions = (qwinsta /server $tbComputerSearch.Text).split("`n")
+        $usernameIndex = $sessions[0].IndexOf('USERNAME')
+        $IDIndex = $sessions[0].IndexOf('ID') - 2
 
         for($i = 1; $i -lt $sessions.count; $i++){
-            if($sessions[$i].Substring(19,1).Trim() -ne [string]::Empty){
+            if($sessions[$i].Substring($usernameIndex,1).Trim() -ne [string]::Empty){
                 [void] $alAvailableSessions.Add([pscustomObject]@{
-                    sessionName = $sessions[$i].Substring(19,20).Trim()
-                    sessionID = $sessions[$i].Substring(41,5).Trim()
+                    sessionName = $sessions[$i].Substring($usernameIndex,20).Trim()
+                    sessionID = $sessions[$i].Substring($IDIndex,5).Trim()
                 })
             }
         }
@@ -245,6 +251,8 @@ function Search-Computer{
         $tbComputerName.Text = $computerName.Name
         $tbIPAddress.Text =  Invoke-Command -ComputerName $computerName.Name -ScriptBlock { Get-NetIPAddress | Where-Object {$_.AddressFamily -eq 'IPv4' -and $_.InterfaceAlias -notmatch 'Loopback|Bluetooth'} | Select-Object -ExpandProperty IPAddress }
         $tbFreeDiskSpace.Text = "$((Get-CimInstance -ComputerName $computerName.Name -ClassName Win32_LogicalDisk | Where-Object {$_.DeviceID -eq 'C:'} | Select-Object  @{Name="FreeSpacePercent"; Expression={[Math]::Round(($_.FreeSpace / $_.Size) * 100)}}).FreeSpacePercent)%"
+        $tbMemoryUsage.Text = "$((Get-Counter -ComputerName $computerName.Name -Counter '\Memory\Available MBytes').CounterSamples.CookedValue) MB"
+        $tbLastBootTime.Text = (Get-CimInstance -ComputerName $computerName.Name Win32_OperatingSystem).LastBootUpTime
     }
     }catch{
         Write-Host $_
