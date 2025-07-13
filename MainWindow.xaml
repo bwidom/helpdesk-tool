@@ -47,6 +47,7 @@
                         <TextBox x:Name="lSAMAccountName"  IsReadOnly="True" HorizontalAlignment="Left" SelectionTextBrush="{x:Null}" BorderThickness="0" Height="17" Margin="676,17,0,0" VerticalAlignment="Top" Width="138" HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
                         <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="33" VerticalAlignment="Top" Width="398" Tag="User Info" Margin="449,8,0,0"/>
                         <Label Content="User Info" HorizontalAlignment="Left" Height="18" VerticalAlignment="Top" Width="48" Background="#FFE5E5E5" Padding="0,0,0,5" Foreground="#FF747070" Margin="469,1,0,0"/>
+                        <Button x:Name="bSendEmail" Content="Send Email" HorizontalAlignment="Left" Height="24" Margin="473,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
                     </Grid>
                 </Grid>
             </TabItem>
