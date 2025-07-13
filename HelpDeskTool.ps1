@@ -135,10 +135,10 @@ function Create-PasswordWindow{
 
         function Change-UserPassword{
             Write-Host "Changing Password of $($lSAMAccountName.Text) to $($tbNewPassword.Text)"
-            Set-ADAccountPassword -Identity $lSAMAccountName.Text -NewPassword (ConvertTo-SecureString -AsPlainText $tbNewPassword.Text -Force) -Reset
+            $u = Set-ADAccountPassword -Identity $lSAMAccountName.Text -NewPassword (ConvertTo-SecureString -AsPlainText $tbNewPassword.Text -Force) -Reset -PassThru           
             Set-ADUser -Identity $lSAMAccountName.Text -ChangePasswordAtLogon $true
             [System.Windows.Forms.MessageBox]::Show("Password Changed")
-            Write-Host "$(($lSAMAccountName.Text)) password changed to $($tbNewPassword.Text). Password must change at login"
+            Write-Host "$(($u.Name)) password changed to $($tbNewPassword.Text). Password must change at login"
             $ChangePasswordWindow.Close()
         }
 
@@ -271,6 +271,49 @@ function Start-Shadow{
     }
 }
 
+function Send-Email{
+    Add-Type -AssemblyName PresentationFramework
+    Add-Type -AssemblyName System.Windows.Forms
+    $WebRequest = Invoke-WebRequest "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/EmailWindow.xaml"
+    [xml]$XAML = $WebRequest.Content
+
+    $XAML.Window.RemoveAttribute('x:Class')
+    $XAML.Window.RemoveAttribute('mc:Ignorable')
+    $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
+    $EmailWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
+    $XAML.SelectNodes("//*[@Name]") | %{Set-Variable -Name ($_.Name) -Value $EmailWindow.FindName($_.Name)}
+
+    $user = Get-AdUser -Identity $lSAMAccountName.Text -Properties EmailAddress
+    $outlook = New-Object -ComObject Outlook.Application
+    $mail.createItem(0)
+    $mail.To = $user.EmailAddress
+    $mail.Subject = 'ITT Service Request SR# '
+    $mail.body = ''
+    $mail.Display()
+
+    $cbTemplate = $EmailWindow.FindName("cbTemplate")
+    $bSelectTemplate = $EmailWindow.FindName('bSelectTemplate')
+
+    $csv = Import-Csv "C:\Users\bwido\Downloads\Book(Sheet1).csv"
+    $csv | ForEach-Object{$cbTemplate.AddChild($_.Name)}
+
+    $bSelectTemplate.Add_Click({Select-Template})
+
+    function Select-Template{
+        $Mail.Body = Get-EmailHeader
+        $templateName = $cbTemplate.SelectedItem
+        $template = $csv | Where-Object{$_.Name -eq $templateName} | Select-Object -ExpandProperty Template
+        $template | ForEach-Object {$Mail.Body += $_}
+    }
+
+    Function Get-EmailHeader{
+        $timeOfDay = if((Get-Date).Hour -lt 12){'morning'}else{'afternoon'}
+        return "Good $timeOfDay, $user,`n`n"
+    }
+
+    $EmailWindow.ShowDialog()|out-null
+}
+
 $bSearch = $MainWindow.FindName("bSearch")
 $bSearch.Add_Click({Search-User})
 
@@ -285,5 +328,8 @@ $bSearchComputer.Add_Click({Search-Computer})
 
 $bShadow = $MainWindow.FindName("bShadow")
 $bShadow.Add_Click({Start-Shadow})
+
+$bSendEmail = $MainWindow.FindName('bSendEmail')
+$bSendEmail.Add_Click({Send-Email})
 
 $MainWindow.ShowDialog() | Out-Null
