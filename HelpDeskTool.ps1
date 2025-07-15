@@ -265,7 +265,7 @@ function Start-Shadow{
     if($lbSessions.SelectedItem){
         $selectedSession = $lbSessions.SelectedItem
         $sessionID = (-split $selectedSession)[1]
-        mstsc.exe /v:$tbComputerSearch /shadow:$sessionID /f /span
+        mstsc.exe /v:$tbComputerSearch /shadow:$sessionID /f /span /control
     }else{
         #Write error message if not item selected/no computer selected
     }
