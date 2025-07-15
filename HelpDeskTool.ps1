@@ -285,7 +285,7 @@ function Send-Email{
 
     $user = Get-AdUser -Identity $lSAMAccountName.Text -Properties EmailAddress
     $outlook = New-Object -ComObject Outlook.Application
-    $mail.createItem(0)
+    $mail = $outlook.createItem(0)
     $mail.To = $user.EmailAddress
     $mail.Subject = 'ITT Service Request SR# '
     $mail.body = ''
@@ -294,7 +294,7 @@ function Send-Email{
     $cbTemplate = $EmailWindow.FindName("cbTemplate")
     $bSelectTemplate = $EmailWindow.FindName('bSelectTemplate')
 
-    $csv = Import-Csv "C:\Users\bwido\Downloads\Book(Sheet1).csv"
+    $csv = Import-Csv "C:\Users\bbame\Documents\Templates.txt"
     $csv | ForEach-Object{$cbTemplate.AddChild($_.Name)}
 
     $bSelectTemplate.Add_Click({Select-Template})
@@ -308,9 +308,9 @@ function Send-Email{
 
     Function Get-EmailHeader{
         $timeOfDay = if((Get-Date).Hour -lt 12){'morning'}else{'afternoon'}
-        return "Good $timeOfDay, $user,`n`n"
+        return "Good $timeOfDay, $($user.GivenName),`n`n"
     }
-
+    
     $EmailWindow.ShowDialog()|out-null
 }
 
