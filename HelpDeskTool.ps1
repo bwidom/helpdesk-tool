@@ -21,6 +21,7 @@ $tbIPAddress = $MainWindow.FindName('tbIPAddress')
 $tbFreeDiskSpace = $MainWindow.FindName('tbFreeDiskSpace')
 $tbMemoryUsage = $MainWindow.FindName('tbMemoryUsage')
 $tbLastBootTime = $MainWindow.FindName('tbLastBootTime')
+$iDisabledIcon = $MainWindow.FindName('iDisabledIcon')
 
 $tbSearchUser.Focus() | Out-Null
 
@@ -78,6 +79,7 @@ function Search-User{
                 $rows[$i]["LockedOut"] = "DC Unavailable"
             }
         }
+        if($userInfoOnServer.Enabled){$iDisabledIcon.Visibility='Visible'}else{$iDisabledIcon.Visibility='Hidden'}
         $lEmployeeID.Text = $userInfoOnServer.EmployeeID
         $lSAMAccountName.Text = $userInfoOnServer.SAMAccountName
     }elseif($countUser.Count -eq 0){
