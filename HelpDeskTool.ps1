@@ -52,7 +52,7 @@ function Search-User{
     [System.Windows.Forms.Application]::DoEvents()
     switch($cbSearchCriteria.SelectedIndex){
         0{
-            $filter = "(EmployeeID -eq "+$tbSearchUser.Text+") "
+            $filter = "(EmployeeID -eq '$($tbSearchUser.Text)') "
         }
         1{
             $x = "*"+$tbSearchUser.Text+"*"
