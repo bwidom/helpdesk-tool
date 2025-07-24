@@ -41,15 +41,16 @@
                         <DataGrid Name="dgAccountInfo" Margin="0,87,0,0" Padding="5,0,0,0" Style="{DynamicResource DataGridStyle1}" Height="149"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" ColumnWidth="*" RowHeaderWidth="0" GridLinesVisibility="None" Width="900" Background="#FFE5E5E5" BorderBrush="{x:Null}" RowBackground="#FFE5E5E5" SelectionUnit="Cell"/>
 
 
-                        <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="0,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
-                        <Button x:Name="bUnlock" Content="Unlock" HorizontalAlignment="Left" Height="24" Margin="213,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
+                        <Button x:Name="bChangePassword" Content="Change Password" HorizontalAlignment="Left" Height="24" Margin="5,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
+                        <Button x:Name="bUnlock" Content="Unlock" HorizontalAlignment="Left" Height="24" Margin="217,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
                         <TextBox x:Name="lEmployeeID" IsReadOnly="True" HorizontalAlignment="Left" SelectionTextBrush="{x:Null}" BorderThickness="0" Height="17" Margin="484,17,0,0"  VerticalAlignment="Top" Width="138"  HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
                         <TextBox x:Name="lSAMAccountName"  IsReadOnly="True" HorizontalAlignment="Left" SelectionTextBrush="{x:Null}" BorderThickness="0" Height="17" Margin="676,17,0,0" VerticalAlignment="Top" Width="138" HorizontalContentAlignment="Center" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0,5,0"/>
                         <Border BorderBrush="#FF898585" BorderThickness="1" HorizontalAlignment="Left" Height="33" VerticalAlignment="Top" Width="398" Tag="User Info" Margin="449,8,0,0"/>
                         <Image x:Name="iDisabledIcon" HorizontalAlignment="Left" Height="12" Margin="816,20,0,0" VerticalAlignment="Top" Width="12" Source="https://cdn-icons-png.flaticon.com/256/58/58696.png" Visibility="Hidden"/>
 
                         <Label Content="User Info" HorizontalAlignment="Left" Height="18" VerticalAlignment="Top" Width="48" Background="#FFE5E5E5" Padding="0,0,0,5" Foreground="#FF747070" Margin="469,1,0,0"/>
-                        <Button x:Name="bSendEmail" Content="Send Email" HorizontalAlignment="Left" Height="24" Margin="473,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
+                        <Button x:Name="bSendEmail" Content="Send Email" HorizontalAlignment="Left" Height="24" Margin="445,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
+                        <Button x:Name="bMoreUserInfo" Content="More Info" HorizontalAlignment="Left" Height="24" Margin="658,55,0,0" VerticalAlignment="Top" Width="196" Cursor="Hand"/>
                     </Grid>
                 </Grid>
             </TabItem>
