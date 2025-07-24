@@ -342,6 +342,47 @@ function Send-Email{
     $EmailWindow.ShowDialog()|out-null
 }
 
+function Create-UserInfoWindow{
+    if($lSAMAccountName.Text){
+        $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/UserInfoWindow.xaml"
+        [xml]$XAML = $WebRequest.Content
+        $XAML.Window.RemoveAttribute('x:Class')
+        $XAML.Window.RemoveAttribute('mc:Ignorable')
+        $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
+        $UserInfoWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
+        $XAML.SelectNodes("//*[@Name]") | Where-Object {Set-Variable -Name ($_.Name) -Value $UserInfoWindow.FindName($_.Name)}
+        $UserInfoWindow.Title = $lSAMAccountName.Text
+
+        $tbEmailAddress = $UserInfoWindow.FindName('tbEmailAddress')
+        $tbAddress = $UserInfoWindow.FindName('tbAddress')
+        $tbTelephone = $UserInfoWindow.FindName('tbTelephone')
+        $tbMobilePhone = $UserInfoWindow.FindName('tbMobilePhone')
+        $tbOtherLoginWorkstation = $UserInfoWindow.FindName('tbOtherLoginWorkstation')
+        $tbCanonicalName = $UserInfoWindow.FindName('tbCanonicalName')
+        $tbProfilePath = $UserInfoWindow.FindName('tbProfilePath')
+        $tbExpiresOn = $UserInfoWindow.FindName('tbExpiresOn')
+        $lbMemberOf = $UserInfoWindow.FindName('lbMemberOf')
+        
+        $Properties = @('EmailAddress','Office','telephoneNumber','MobilePhone','otherLoginWorkstations','CanonicalName','ProfilePath','AccountExpirationDate','MemberOf')
+
+        $User = Get-ADUser -Filter {SAMAccountName -eq $lSAMAccountName.Text} -Properties $Properties
+        $tbAddress.Text = $User.Office
+        $tbEmailAddress.Text = $User.EmailAddress
+        $tbTelephone.Text = $User.telephoneNumber
+        $tbMobilePhone.Text = $User.MobilePhone
+        $tbOtherLoginWorkstation.Text = $User.otherLoginWorkstations
+        $tbCanonicalName.Text = $User.CanonicalName
+        $tbProfilePath.Text = $User.ProfilePath
+        $tbExpiresOn.Text = $User.AccountExpirationDate
+        Get-ADPrincipalGroupMembership -Identity $lSAMAccountName.Text | ForEach-Object {$lbMemberOf.AddChild($_.name)}
+
+
+        $UserInfoWindow.ShowDialog() | Out-Null
+    }else{
+        Write-Host "No user Selected"
+    }
+}
+
 $bSearch = $MainWindow.FindName("bSearch")
 $bSearch.Add_Click({Search-User})
 
@@ -359,5 +400,8 @@ $bShadow.Add_Click({Start-Shadow})
 
 $bSendEmail = $MainWindow.FindName('bSendEmail')
 $bSendEmail.Add_Click({Send-Email})
+
+$bMoreUserInfo = $MainWindow.FindName('bMoreUserInfo')
+$bMoreUserInfo.Add_Click({Create-UserinfoWindow})
 
 $MainWindow.ShowDialog() | Out-Null
