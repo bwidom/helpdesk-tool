@@ -21,10 +21,6 @@
                 <TextBox x:Name="tbTelephone" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="325" >
-                <Label Content="Telephone" ></Label>
-                <TextBox x:Name="tbTelephone" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
-            </DockPanel>
-            <DockPanel HorizontalAlignment="Left" Width="325" >
                 <Label Content="Mobile Phone" ></Label>
                 <TextBox x:Name="tbMobilePhone" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
             </DockPanel>
