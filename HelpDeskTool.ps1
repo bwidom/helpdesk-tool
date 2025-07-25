@@ -48,19 +48,19 @@ for($i=0; $i -lt $dcs.Count; $i++){
 
 function Set-Rows{
     param(
-        [Parameter(Position=0)]
-        [string]$LastBadPassword=[string]::Empty,
         [Parameter(Position=1)]
-        [string]$PasswordLastSet=[string]::Empty,
+        [string]$LastBadPassword=[string]::Empty,
         [Parameter(Position=2)]
-        [string]$PasswordExpired=[string]::Empty,
+        [string]$PasswordLastSet=[string]::Empty,
         [Parameter(Position=3)]
-        [string]$LockedOut=[string]::Empty,
+        [string]$PasswordExpired=[string]::Empty,
         [Parameter(Position=4)]
-        $BadLogonCount=[DBNull]::Value,
+        [string]$LockedOut=[string]::Empty,
         [Parameter(Position=5)]
-        [string]$DCName = [string]::Empty,
+        $BadLogonCount=[DBNull]::Value,
         [Parameter(Position=6)]
+        [string]$DCName = [string]::Empty,
+        [Parameter(Position=0)]
         [int]$RowIndex
     )
     $rows[$RowIndex]["LastBadPassword"] = $LastBadPassword
@@ -95,13 +95,13 @@ function Search-User{
         for($i = 0; $i -lt $dcs.Count; $i++){ 
             if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
                 $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties| Select-Object $properties)
-                Set-Rows $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
+                Set-Rows $i `
+                    $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
                     $(if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}) `
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
-                    $($dcs[$i].Name) `        
-                    $i
+                    $($dcs[$i].Name)
             }else{
                 $rows[$i]["DC Name"] = $dcs[$i].Name
                 $rows[$i]["LockedOut"] = "DC Unavailable"
@@ -190,7 +190,7 @@ function Create-SelectUserWindow{
     $lbUsers = $SelectUserWindow.FindName('lbUsers')
     $userInfo = $userInfoOnServer = @(Get-ADUser -Filter $filter)
     foreach($u in $userInfo){
-        $lbUsers.AddChild($u.Name)
+        $lbUsers.AddChild($u.SAMAccountName)
     }
 
     $bSelectUser = $SelectUserWindow.FindName('bSelectUser')
@@ -211,18 +211,19 @@ function Create-SelectUserWindow{
         for($i = 0; $i -lt $dcs.Count; $i++){ 
             if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
                 $userInfoOnServer = @(Get-ADUser $user -Server $dcs[$i] -Properties $properties| Select-Object $properties)
-                Set-Rows $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
+                Set-Rows $i `
+                    $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
                     $(if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}) `
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
-                    $($dcs[$i].Name) `        
-                    $i
+                    $($dcs[$i].Name)
             }else{
                 $rows[$i]["DC Name"] = $dcs[$i].Name
                 $rows[$i]["LockedOut"] = "DC Unavailable"
             }
         }
+        if($countUser[0].Enabled){$iDisabledIcon.Visibility='Hidden'}else{$iDisabledIcon.Visibility='Visible'}
         $lEmployeeID.Text = $userInfoOnServer.EmployeeID
         $lSAMAccountName.Text = $userInfoOnServer.SAMAccountName
         $SelectUserWindow.Close()
@@ -326,12 +327,11 @@ function Send-Email{
     $bSelectTemplate.Add_Click({Select-Template})
 
     function Select-Template{
-        $Mail.Body = Get-EmailHeader
         $templateName = $cbTemplate.SelectedItem
         $template = $csv | Where-Object{$_.Name -eq $templateName} | Select-Object -ExpandProperty Template
         $bodyBuffer = ''
         $template | ForEach-Object {$bodyBuffer += $_}
-        $Mail.HTMLBody = $bodyBuffer + $Mail.HTMLBody
+        $Mail.HTMLBody = "$(Get-EmailHeader) <br><br> $bodyBuffer $($Mail.HTMLBody)"
     }
 
     Function Get-EmailHeader{
