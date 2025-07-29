@@ -84,7 +84,7 @@ function Search-User{
         }
         1{
             $x = "*"+$tbSearchUser.Text+"*"
-            $filter = "Name -like '$x'"          
+            $filter = "Name -like '$x' -OR SAMAccountName -like '$x'"          
         }
     }
 
@@ -93,8 +93,8 @@ function Search-User{
     $countUser = @(Get-ADUser -Filter $filter)
     if($countUser.Count -eq 1){
         for($i = 0; $i -lt $dcs.Count; $i++){ 
-            if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
-                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties| Select-Object $properties)
+            #if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
+                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties)
                 Set-Rows $i `
                     $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
@@ -102,10 +102,10 @@ function Search-User{
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
                     $($dcs[$i].Name)
-            }else{
-                $rows[$i]["DC Name"] = $dcs[$i].Name
-                $rows[$i]["LockedOut"] = "DC Unavailable"
-            }
+            #}else{
+            #    $rows[$i]["DC Name"] = $dcs[$i].Name
+            #    $rows[$i]["LockedOut"] = "DC Unavailable"
+            #}
         }
         if($countUser[0].Enabled){$iDisabledIcon.Visibility='Hidden'}else{$iDisabledIcon.Visibility='Visible'}
         $lEmployeeID.Text = $userInfoOnServer.EmployeeID
@@ -209,8 +209,8 @@ function Create-SelectUserWindow{
         $user = $lbUsers.SelectedItem
         $iDisabledIcon.Visibility="Hidden"
         for($i = 0; $i -lt $dcs.Count; $i++){ 
-            if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
-                $userInfoOnServer = @(Get-ADUser $user -Server $dcs[$i] -Properties $properties| Select-Object $properties)
+            #if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
+                $userInfoOnServer = @(Get-ADUser $user -Server $dcs[$i] -Properties $properties)
                 Set-Rows $i `
                     $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
@@ -218,10 +218,10 @@ function Create-SelectUserWindow{
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
                     $($dcs[$i].Name)
-            }else{
-                $rows[$i]["DC Name"] = $dcs[$i].Name
-                $rows[$i]["LockedOut"] = "DC Unavailable"
-            }
+            #}else{
+            #    $rows[$i]["DC Name"] = $dcs[$i].Name
+            #    $rows[$i]["LockedOut"] = "DC Unavailable"
+            #}
         }
         if($countUser[0].Enabled){$iDisabledIcon.Visibility='Hidden'}else{$iDisabledIcon.Visibility='Visible'}
         $lEmployeeID.Text = $userInfoOnServer.EmployeeID
@@ -354,6 +354,7 @@ function Create-UserInfoWindow{
         $UserInfoWindow.Title = $lSAMAccountName.Text
 
         $tbEmailAddress = $UserInfoWindow.FindName('tbEmailAddress')
+        $tbDescription = $UserInfoWindow.FindName('tbDescription')
         $tbAddress = $UserInfoWindow.FindName('tbAddress')
         $tbTelephone = $UserInfoWindow.FindName('tbTelephone')
         $tbMobilePhone = $UserInfoWindow.FindName('tbMobilePhone')
@@ -363,10 +364,11 @@ function Create-UserInfoWindow{
         $tbExpiresOn = $UserInfoWindow.FindName('tbExpiresOn')
         $lbMemberOf = $UserInfoWindow.FindName('lbMemberOf')
         
-        $Properties = @('EmailAddress','Office','telephoneNumber','MobilePhone','otherLoginWorkstations','CanonicalName','ProfilePath','AccountExpirationDate','MemberOf')
+        $Properties = @('EmailAddress','Description','Office','telephoneNumber','MobilePhone','otherLoginWorkstations','CanonicalName','ProfilePath','AccountExpirationDate','MemberOf')
 
         $User = Get-ADUser -Filter {SAMAccountName -eq $lSAMAccountName.Text} -Properties $Properties
         $tbAddress.Text = $User.Office
+        $tbDescription.Text = $User.Description
         $tbEmailAddress.Text = $User.EmailAddress
         $tbTelephone.Text = $User.telephoneNumber
         $tbMobilePhone.Text = $User.MobilePhone
@@ -374,8 +376,8 @@ function Create-UserInfoWindow{
         $tbCanonicalName.Text = $User.CanonicalName
         $tbProfilePath.Text = $User.ProfilePath
         $tbExpiresOn.Text = $User.AccountExpirationDate
-        Get-ADPrincipalGroupMembership -Identity $lSAMAccountName.Text | ForEach-Object {$lbMemberOf.AddChild($_.name)}
-
+        #Get-ADPrincipalGroupMembership -Identity $lSAMAccountName.Text | ForEach-Object {$lbMemberOf.AddChild($_.name)}
+        (Get-ADUser -Filter {SAMAccountName -eq $lSAMAccountName.Text} -Properties MemberOf).MemberOf | ForEach-Object {$lbMemberOf.AddChild(($_ -split ',')[0].Substring(3))}
 
         $UserInfoWindow.ShowDialog() | Out-Null
     }else{
