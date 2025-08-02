@@ -47,7 +47,7 @@
 
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Member Of" ></Label>
-                <ListBox x:Name="lbMemberOf" Height="296" Width="374" BorderBrush="{x:Null}" HorizontalContentAlignment="Right"/>
+                <ListBox x:Name="lbMemberOf" Height="296" Width="494" BorderBrush="{x:Null}" HorizontalContentAlignment="Right"/>
             </DockPanel>
         </StackPanel>
     </Grid>
