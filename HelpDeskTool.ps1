@@ -2,6 +2,7 @@ Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
 $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/MainWindow.xaml"
 [xml]$XAML = $WebRequest.Content
+#[xml]$XAML = Get-Content 'MainWindow.xaml'
 
 $XAML.Window.RemoveAttribute('x:Class')
 $XAML.Window.RemoveAttribute('mc:Ignorable')
@@ -30,7 +31,7 @@ $dataTable = New-Object System.Data.DataTable
 [void]$dataTable.Columns.Add("DC Name", [string])
 [void]$dataTable.Columns.Add("LastBadPassword", [string])
 [void]$dataTable.Columns.Add("PasswordLastSet", [string])
-[void]$dataTable.Columns.Add("PasswordExpired", [string])
+[void]$dataTable.Columns.Add("PasswordExpirationDate", [string])
 [void]$dataTable.Columns.Add("LockedOut", [string])
 [void]$dataTable.Columns.Add("BadLogonCount", [int])
 
@@ -53,7 +54,7 @@ function Set-Rows{
         [Parameter(Position=2)]
         [string]$PasswordLastSet=[string]::Empty,
         [Parameter(Position=3)]
-        [string]$PasswordExpired=[string]::Empty,
+        [string]$PasswordExpirationDate=[string]::Empty,
         [Parameter(Position=4)]
         [string]$LockedOut=[string]::Empty,
         [Parameter(Position=5)]
@@ -65,7 +66,7 @@ function Set-Rows{
     )
     $rows[$RowIndex]["LastBadPassword"] = $LastBadPassword
     $rows[$RowIndex]["PasswordLastSet"] = $PasswordLastSet
-    $rows[$RowIndex]["PasswordExpired"] = $PasswordExpired
+    $rows[$RowIndex]["PasswordExpirationDate"] = $PasswordExpirationDate
     $rows[$RowIndex]["LockedOut"] = $LockedOut
     $rows[$RowIndex]["BadLogonCount"] = $BadLogonCount
     $rows[$RowIndex]["DC Name"] = $DCName
@@ -88,7 +89,7 @@ function Search-User{
         }
     }
 
-    $properties = @("LastBadPasswordAttempt", "PasswordLastSet", "PasswordExpired", "BadLogonCount", "LockedOut", "EmployeeID", "SAMAccountName")
+    $properties = @("LastBadPasswordAttempt", "PasswordLastSet", "msDS-UserPasswordExpiryTimeComputed", "BadLogonCount", "LockedOut", "EmployeeID", "SAMAccountName")
 
     $countUser = @(Get-ADUser -Filter $filter)
     if($countUser.Count -eq 1){
@@ -98,7 +99,7 @@ function Search-User{
                 Set-Rows $i `
                     $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
-                    $(if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}) `
+                    $(if($userInfoOnServer.PasswordLastSet){[datetime]::FromFileTime($userInfoOnServer.'msDS-UserPasswordExpiryTimeComputed')}else{"N/A"}) `
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
                     $($dcs[$i].Name)
@@ -140,11 +141,15 @@ function Create-PasswordWindow{
     if($lSAMAccountName.Text){
         $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/ChangePasswordWindow.xaml"
         [xml]$XAML = $WebRequest.Content
+        #[xml]$XAML = Get-Content 'ChangePasswordWindow.xaml'
+
         $XAML.Window.RemoveAttribute('x:Class')
         $XAML.Window.RemoveAttribute('mc:Ignorable')
         $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
         $ChangePasswordWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
         $XAML.SelectNodes("//*[@Name]") | %{Set-Variable -Name ($_.Name) -Value $ChangePasswordWindow.FindName($_.Name)}
+        $ChangePasswordWindow.Owner = $MainWindow
+        $ChangePasswordWindow.WindowStartupLocation = 'CenterOwner'      
 
         $lChangePasswordPrompt = $ChangePasswordWindow.FindName("lChangePasswordPrompt")
         $lChangePasswordPrompt.Content = "Change " + $lSAMAccountName.Text + "'s password to:"
@@ -174,6 +179,7 @@ function Create-PasswordWindow{
         $bCancel.Add_Click({$ChangePasswordWindow.Close()})
 
         $ChangePasswordWindow.ShowDialog() | Out-Null
+    
     }
 }
 
@@ -181,12 +187,16 @@ function Create-SelectUserWindow{
 
     $WebRequest = Invoke-WebRequest "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/SelectUserWindow.xaml"
     [xml]$XAML = $WebRequest.Content
+    #[xml]$XAML = Get-Content 'SelectUserWindow.xaml'
+
     $XAML.Window.RemoveAttribute('x:Class')
     $XAML.Window.RemoveAttribute('mc:Ignorable')
     $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
     $SelectUserWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
     $XAML.SelectNodes("//*[@Name]") | %{Set-Variable -Name ($_.Name) -Value $ChangePasswordWindow.FindName($_.Name)}
-    
+    $SelectUserWindow.Owner = $MainWindow
+    $SelectUserWindow.WindowStartupLocation = 'CenterOwner'
+
     $lbUsers = $SelectUserWindow.FindName('lbUsers')
     $userInfo = $userInfoOnServer = @(Get-ADUser -Filter $filter)
     foreach($u in $userInfo){
@@ -214,7 +224,7 @@ function Create-SelectUserWindow{
                 Set-Rows $i `
                     $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
-                    $(if($userInfoOnServer.PasswordLastSet){if($userInfoOnServer.PasswordExpired){"Expired"}else{"Not Expired"}}else{"N/A"}) `
+                    $(if($userInfoOnServer.PasswordLastSet){[datetime]::FromFileTime($userInfoOnServer.'msDS-UserPasswordExpiryTimeComputed')}else{"N/A"}) `
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
                     $($dcs[$i].Name)
@@ -237,7 +247,7 @@ function Clear-Window{
     for($i = 0; $i -lt $dcs.Count; $i++){             
         $rows[$i]["LastBadPassword"] = [string]::Empty
         $rows[$i]["PasswordLastSet"] = [string]::Empty
-        $rows[$i]["PasswordExpired"] = [string]::Empty
+        $rows[$i]["PasswordExpirationDate"] = [string]::Empty
         $rows[$i]["LockedOut"] = [string]::Empty
         $rows[$i]["BadLogonCount"] = [DBNull]::Value
         $rows[$i]["DC Name"] = [string]::Empty
@@ -300,10 +310,9 @@ function Start-Shadow{
 }
 
 function Send-Email{
-    Add-Type -AssemblyName PresentationFramework
-    Add-Type -AssemblyName System.Windows.Forms
     $WebRequest = Invoke-WebRequest "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/EmailWindow.xaml"
     [xml]$XAML = $WebRequest.Content
+    #[xml]$XAML = Get-Content 'EmailWindow.xaml'
 
     $XAML.Window.RemoveAttribute('x:Class')
     $XAML.Window.RemoveAttribute('mc:Ignorable')
@@ -346,12 +355,16 @@ function Create-UserInfoWindow{
     if($lSAMAccountName.Text){
         $WebRequest = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bwidom/helpdesk-tool/refs/heads/main/UserInfoWindow.xaml"
         [xml]$XAML = $WebRequest.Content
+        #[xml]$XAML = Get-Content 'UserInfoWindow.xaml'
+
         $XAML.Window.RemoveAttribute('x:Class')
         $XAML.Window.RemoveAttribute('mc:Ignorable')
         $XAMLReader = New-Object System.Xml.XmlNodeReader $XAML
         $UserInfoWindow = [Windows.Markup.XamlReader]::Load($XAMLReader)
         $XAML.SelectNodes("//*[@Name]") | Where-Object {Set-Variable -Name ($_.Name) -Value $UserInfoWindow.FindName($_.Name)}
         $UserInfoWindow.Title = $lSAMAccountName.Text
+        $UserInfoWindow.Owner = $MainWindow
+        $UserInfoWindow.WindowStartupLocation = 'CenterOwner'
 
         $tbEmailAddress = $UserInfoWindow.FindName('tbEmailAddress')
         $tbDescription = $UserInfoWindow.FindName('tbDescription')
@@ -364,7 +377,7 @@ function Create-UserInfoWindow{
         $tbExpiresOn = $UserInfoWindow.FindName('tbExpiresOn')
         $lbMemberOf = $UserInfoWindow.FindName('lbMemberOf')
         
-        $Properties = @('EmailAddress','Description','Office','telephoneNumber','MobilePhone','otherLoginWorkstations','CanonicalName','ProfilePath','AccountExpirationDate','MemberOf')
+        $Properties = @('EmailAddress','Description','Office','telephoneNumber','MobilePhone','otherLoginWorkstations','CanonicalName','HomeDirectory','AccountExpirationDate','MemberOf')
 
         $User = Get-ADUser -Filter {SAMAccountName -eq $lSAMAccountName.Text} -Properties $Properties
         $tbAddress.Text = $User.Office
@@ -374,7 +387,7 @@ function Create-UserInfoWindow{
         $tbMobilePhone.Text = $User.MobilePhone
         $tbOtherLoginWorkstation.Text = $User.otherLoginWorkstations
         $tbCanonicalName.Text = $User.CanonicalName
-        $tbProfilePath.Text = $User.ProfilePath
+        $tbProfilePath.Text = $User.HomeDirectory
         $tbExpiresOn.Text = $User.AccountExpirationDate
         #Get-ADPrincipalGroupMembership -Identity $lSAMAccountName.Text | ForEach-Object {$lbMemberOf.AddChild($_.name)}
         (Get-ADUser -Filter {SAMAccountName -eq $lSAMAccountName.Text} -Properties MemberOf).MemberOf | ForEach-Object {$lbMemberOf.AddChild(($_ -split ',')[0].Substring(3))}
