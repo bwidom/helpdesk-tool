@@ -5,49 +5,49 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp2"
         mc:Ignorable="d"
-        Title="" Height="600" Width="600">
-    <Grid>
+        Title="" Height="600" Width="610" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="White">
+    <Grid Background="#FFB8AFAF">
         <StackPanel HorizontalAlignment="Left" Height="519" Margin="24,18,0,0" VerticalAlignment="Top" Width="566">
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Email Address" ></Label>
-                <TextBox x:Name="tbEmailAddress" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbEmailAddress" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Description" ></Label>
-                <TextBox x:Name="tbDescription" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbDescription" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Address" ></Label>
-                <TextBox x:Name="tbAddress" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbAddress" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Telephone" ></Label>
-                <TextBox x:Name="tbTelephone" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbTelephone" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Mobile Phone" ></Label>
-                <TextBox x:Name="tbMobilePhone" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbMobilePhone" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="otherLoginWorkstation" ></Label>
-                <TextBox x:Name="tbOtherLoginWorkstation" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox Text="C23-4232" x:Name="tbOtherLoginWorkstation" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Canonical Name" ></Label>
-                <TextBox x:Name="tbCanonicalName" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbCanonicalName" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Profile Path" ></Label>
-                <TextBox x:Name="tbProfilePath" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbProfilePath" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Expires On" ></Label>
-                <TextBox x:Name="tbExpiresOn" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}"/>
+                <TextBox x:Name="tbExpiresOn" HorizontalAlignment="Right" IsReadOnly="True" SelectionTextBrush="{x:Null}" BorderBrush="{x:Null}" Background="{x:Null}"/>
             </DockPanel>
 
             <DockPanel HorizontalAlignment="Left" Width="565" >
                 <Label Content="Member Of" ></Label>
-                <ListBox x:Name="lbMemberOf" Height="296" Width="494" BorderBrush="{x:Null}" HorizontalContentAlignment="Right"/>
+                <ListBox x:Name="lbMemberOf" Height="296" Width="494" BorderBrush="{x:Null}" HorizontalContentAlignment="Right" Background="{x:Null}"/>
             </DockPanel>
         </StackPanel>
     </Grid>
