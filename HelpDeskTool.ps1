@@ -49,6 +49,8 @@ for($i=0; $i -lt $dcs.Count; $i++){
 
 function Set-Rows{
     param(
+        [Parameter(Position=0)]
+        [int]$RowIndex,
         [Parameter(Position=1)]
         [string]$LastBadPassword=[string]::Empty,
         [Parameter(Position=2)]
@@ -60,9 +62,7 @@ function Set-Rows{
         [Parameter(Position=5)]
         $BadLogonCount=[DBNull]::Value,
         [Parameter(Position=6)]
-        [string]$DCName = [string]::Empty,
-        [Parameter(Position=0)]
-        [int]$RowIndex
+        [string]$DCName = [string]::Empty
     )
     $rows[$RowIndex]["LastBadPassword"] = $LastBadPassword
     $rows[$RowIndex]["PasswordLastSet"] = $PasswordLastSet
@@ -95,7 +95,10 @@ function Search-User{
     if($countUser.Count -eq 1){
         for($i = 0; $i -lt $dcs.Count; $i++){ 
             #if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
+                Write-Host "Getting info on $($dcs[$i].Name)"
                 $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties)
+                Write-Host "Got user info $userInfoOnServer"
+                Write-Host "Setting Rows"
                 Set-Rows $i `
                     $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
@@ -103,6 +106,7 @@ function Search-User{
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
                     $($dcs[$i].Name)
+                Write-Host "Rows Set"
             #}else{
             #    $rows[$i]["DC Name"] = $dcs[$i].Name
             #    $rows[$i]["LockedOut"] = "DC Unavailable"
@@ -264,36 +268,40 @@ function Search-Computer{
     $tbMemoryUsage.Text = ''
     $tbLastBootTime.Text = ''
     try{
-        $computerName = @(Get-ADComputer -Identity $tbComputerSearch.Text)
-        #Add selection for more than one computer
-    if($computerName.Count -eq 1){
-    
-        $alAvailableSessions = [System.Collections.ArrayList]::new()
-    
-        $sessions = (qwinsta /server $tbComputerSearch.Text).split("`n")
-        $usernameIndex = $sessions[0].IndexOf('USERNAME')
-        $IDIndex = $sessions[0].IndexOf('ID') - 2
+        if($tbComputerSearch.Text){
+            $computerName = @(Get-ADComputer -Identity $tbComputerSearch.Text)
 
-        for($i = 1; $i -lt $sessions.count; $i++){
-            if($sessions[$i].Substring($usernameIndex,1).Trim() -ne [string]::Empty){
-                [void] $alAvailableSessions.Add([pscustomObject]@{
-                    sessionName = $sessions[$i].Substring($usernameIndex,20).Trim()
-                    sessionID = $sessions[$i].Substring($IDIndex,5).Trim()
-                })
+            $alAvailableSessions = [System.Collections.ArrayList]::new()
+    
+            $sessions = (qwinsta /server $tbComputerSearch.Text).split("`n")
+            $usernameIndex = $sessions[0].IndexOf('USERNAME')
+            $IDIndex = $sessions[0].IndexOf('ID') - 2
+            $stateIndex = $sessions[0].IndexOf('STATE')
+
+            for($i = 1; $i -lt $sessions.count; $i++){
+                if($sessions[$i].Substring($usernameIndex,1).Trim() -ne [string]::Empty){
+                    [void] $alAvailableSessions.Add([pscustomObject]@{
+                        sessionName = $sessions[$i].Substring($usernameIndex,20).Trim()
+                        sessionID = $sessions[$i].Substring($IDIndex,5).Trim()
+                        sessionState = $sessions[$i].Substring($stateIndex,6).Trim()
+                    })
+                }
             }
-        }
 
-        foreach($session in $alAvailableSessions){
-            $lbSessions.AddChild("$($session.sessionName)           $($session.sessionID)")
+            foreach($session in $alAvailableSessions){
+                $lbSessions.AddChild("$($session.sessionName)                  $($session.sessionID)                  $($session.sessionState)")
+            }
+            $tbComputerName.Text = $computerName.Name
+            #$tbIPAddress.Text =  Invoke-Command -ComputerName $computerName.Name -ScriptBlock { Get-NetIPAddress | Where-Object {$_.AddressFamily -eq 'IPv4' -and $_.InterfaceAlias -notmatch 'Loopback|Bluetooth'} | Select-Object -ExpandProperty IPAddress }
+            $tbFreeDiskSpace.Text = "$((Get-WMIObject -ComputerName $computerName.Name -ClassName Win32_LogicalDisk | Where-Object {$_.DeviceID -eq 'C:'} | Select-Object  @{Name="FreeSpacePercent"; Expression={[Math]::Round(($_.FreeSpace / $_.Size) * 100)}}).FreeSpacePercent)%"
+            $tbMemoryUsage.Text = "$((Get-Counter -ComputerName $computerName.Name -Counter '\Memory\Available MBytes').CounterSamples.CookedValue) MB"
+            $tbLastBootTime.Text = [Management.ManagementDateTimeConverter]::ToDateTime((Get-WmiObject -ComputerName $computerName.Name -Class Win32_OperatingSystem).LastBootUpTime)
+        }else{
+            [System.Windows.Forms.MessageBox]::Show('No computer selected.')
         }
-        $tbComputerName.Text = $computerName.Name
-        $tbIPAddress.Text =  Invoke-Command -ComputerName $computerName.Name -ScriptBlock { Get-NetIPAddress | Where-Object {$_.AddressFamily -eq 'IPv4' -and $_.InterfaceAlias -notmatch 'Loopback|Bluetooth'} | Select-Object -ExpandProperty IPAddress }
-        $tbFreeDiskSpace.Text = "$((Get-CimInstance -ComputerName $computerName.Name -ClassName Win32_LogicalDisk | Where-Object {$_.DeviceID -eq 'C:'} | Select-Object  @{Name="FreeSpacePercent"; Expression={[Math]::Round(($_.FreeSpace / $_.Size) * 100)}}).FreeSpacePercent)%"
-        $tbMemoryUsage.Text = "$((Get-Counter -ComputerName $computerName.Name -Counter '\Memory\Available MBytes').CounterSamples.CookedValue) MB"
-        $tbLastBootTime.Text = (Get-WmiObject -ComputerName DC -Class Win32_OperatingSystem).LastBootUpTime
-    }
+        
     }catch{
-        Write-Host $_
+        [System.Windows.Forms.MessageBox]::Show($_)
     }
     
 
@@ -303,9 +311,9 @@ function Start-Shadow{
     if($lbSessions.SelectedItem){
         $selectedSession = $lbSessions.SelectedItem
         $sessionID = (-split $selectedSession)[1]
-        mstsc.exe /v:$tbComputerSearch /shadow:$sessionID /f /span /control
+        mstsc.exe /v:$($tbComputerName.Text) /shadow:$sessionID /f /span /control
     }else{
-        #Write error message if not item selected/no computer selected
+        [System.Windows.Forms.MessageBox]::Show("No session selected.")
     }
 }
 
