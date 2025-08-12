@@ -35,11 +35,14 @@ $dataTable = New-Object System.Data.DataTable
 [void]$dataTable.Columns.Add("LockedOut", [string])
 [void]$dataTable.Columns.Add("BadLogonCount", [int])
 
-$dgAccountInfo.ItemsSource = $dataTable.DefaultView
+#Properties for Get-ADUser command
+$properties = @("LastBadPasswordAttempt", "PasswordLastSet", "msDS-UserPasswordExpiryTimeComputed", "BadLogonCount", "LockedOut", "EmployeeID", "SAMAccountName")
 
+$dgAccountInfo.ItemsSource = $dataTable.DefaultView
 
 $dcs = @(Get-ADDomainController -Filter * | Sort-Object -Property Name)
 $rows = [Object[]]::new($dcs.Count)
+$domainDistinguishedName = (Get-ADDomain).DistinguishedName
 
 
 for($i=0; $i -lt $dcs.Count; $i++){
@@ -47,6 +50,7 @@ for($i=0; $i -lt $dcs.Count; $i++){
     $dataTable.Rows.Add($rows[$i])
 }
 
+#Set rows on data grid. 
 function Set-Rows{
     param(
         [Parameter(Position=0)]
@@ -78,7 +82,7 @@ function Search-User{
     $lEmployeeID.Text = "Collecting data..."
     $lSAMAccountName.Text = ""
     $iDisabledIcon.Visibility="Hidden"
-    [System.Windows.Forms.Application]::DoEvents()
+    #[System.Windows.Forms.Application]::DoEvents()
     switch($cbSearchCriteria.SelectedIndex){
         0{
             $filter = "(EmployeeID -eq '$($tbSearchUser.Text)') "
@@ -88,17 +92,14 @@ function Search-User{
             $filter = "Name -like '$x' -OR SAMAccountName -like '$x'"          
         }
     }
+    
+    #Get count of users who match criteria. If more than one, diplay matching users.
+    $countUser = @(Get-ADUser -Filter $filter -SearchBase $domainDistinguishedName)
 
-    $properties = @("LastBadPasswordAttempt", "PasswordLastSet", "msDS-UserPasswordExpiryTimeComputed", "BadLogonCount", "LockedOut", "EmployeeID", "SAMAccountName")
-
-    $countUser = @(Get-ADUser -Filter $filter)
     if($countUser.Count -eq 1){
         for($i = 0; $i -lt $dcs.Count; $i++){ 
             #if(Test-Connection ($dcs[$i]).Name -Count 1 -Quiet){
-                Write-Host "Getting info on $($dcs[$i].Name)"
-                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties)
-                Write-Host "Got user info $userInfoOnServer"
-                Write-Host "Setting Rows"
+                $userInfoOnServer = @(Get-ADUser -Server $dcs[$i] -Filter $filter -Properties $properties -SearchBase $domainDistinguishedName)
                 Set-Rows $i `
                     $(if($userInfoOnServer.LastBadPasswordAttempt){$userInfoOnServer.LastBadPasswordAttempt}else{'None'}) `
                     $(if($userInfoOnServer.PasswordLastSet){$userInfoOnServer.PasswordLastSet}else{"Change Password"}) `
@@ -106,7 +107,6 @@ function Search-User{
                     $(if((Get-ADUser -Filter $filter -Properties * | Select-Object -ExpandProperty lockoutTime) -gt 0){"Locked"}else{"Unlocked"}) `
                     $(if($userInfoOnServer.BadLogonCount){$userInfoOnServer.BadLogonCount}else{0}) `
                     $($dcs[$i].Name)
-                Write-Host "Rows Set"
             #}else{
             #    $rows[$i]["DC Name"] = $dcs[$i].Name
             #    $rows[$i]["LockedOut"] = "DC Unavailable"
@@ -128,11 +128,12 @@ function Search-User{
 }
 
 function Unlock-User{
+    #Check if a user is selected.
     if($lSAMAccountName.Text){
         foreach($dc in $dcs){
-            if(Test-Connection ($dc).Name -Count 1 -Quiet){
+            #if(Test-Connection ($dc).Name -Count 1 -Quiet){
                 Unlock-ADAccount -Identity $lSAMAccountName.Text -Server $dc
-            }
+            #}
         }
         Search-User
     }else{
@@ -169,7 +170,7 @@ function Create-PasswordWindow{
 
         function Change-UserPassword{
             Write-Host "Changing Password of $($lSAMAccountName.Text) to $($tbNewPassword.Text)"
-            $u = Set-ADAccountPassword -Identity $lSAMAccountName.Text -NewPassword (ConvertTo-SecureString -AsPlainText $tbNewPassword.Text -Force) -Reset -PassThru           
+            $u = Set-ADAccountPassword -Identity $lSAMAccountName.Text -NewPassword (ConvertTo-SecureString -AsPlainText $tbNewPassword.Text -Force) -PassThru           
             Set-ADUser -Identity $lSAMAccountName.Text -ChangePasswordAtLogon $true
             [System.Windows.Forms.MessageBox]::Show("Password Changed")
             Write-Host "$(($u.Name)) password changed to $($tbNewPassword.Text). Password must change at login"
@@ -217,6 +218,8 @@ function Create-SelectUserWindow{
         $lSAMAccountName.Text = ''
     })
 
+    #Select user from window displaying list of users retrieved from Search-User command. When user selected, their
+    #information is filled in the main window.
     function Select-User{
         $lEmployeeID.Text = "Collecting data..."
         $lSAMAccountName.Text = ""
@@ -272,7 +275,10 @@ function Search-Computer{
             $computerName = @(Get-ADComputer -Identity $tbComputerSearch.Text)
 
             $alAvailableSessions = [System.Collections.ArrayList]::new()
-    
+            
+            #Get sessions on computer from native Windows command qwinsta as string
+            #Parse name, id and state of the active sessions from the string by getting 
+            #index of where each of these fields are on each row.
             $sessions = (qwinsta /server $tbComputerSearch.Text).split("`n")
             $usernameIndex = $sessions[0].IndexOf('USERNAME')
             $IDIndex = $sessions[0].IndexOf('ID') - 2
@@ -307,6 +313,7 @@ function Search-Computer{
 
 }
 
+#Shadow selected session based on session information collected in Search-Computer function
 function Start-Shadow{
     if($lbSessions.SelectedItem){
         $selectedSession = $lbSessions.SelectedItem
